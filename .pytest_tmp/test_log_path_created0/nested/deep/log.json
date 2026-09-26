@@ -8,10 +8,10 @@
         "n_drop": 4
       },
       "affected_paper_ids": [
-        "10.21203/rs.3.rs-10489777/v1",
-        "10.70267/aitia.2026482489",
-        "10.21203/rs.3.rs-10349437/v1",
-        "10.54254/2755-2721/2026.36624"
+        "10.1145/0000",
+        "10.1145/0001",
+        "10.1145/0002",
+        "10.1145/0003"
       ],
       "before_count": 24,
       "after_count": 20,
@@ -23,9 +23,9 @@
         "target_count": 3
       },
       "affected_paper_ids": [
-        "10.20944/preprints202608.1849.v1",
-        "10.1007/s10278-026-02086-9",
-        "10.21203/rs.3.rs-10423755/v1"
+        "10.1145/0007",
+        "10.1145/0004",
+        "10.1145/0012"
       ],
       "expected_quality_signal": "null_summary_violation"
     },
@@ -36,9 +36,9 @@
         "target_count": 3
       },
       "affected_paper_ids": [
-        "10.21203/rs.3.rs-10178277/v1",
-        "10.63646/kpqm1958",
-        "10.21079/11681/50309"
+        "10.1145/0011",
+        "10.1145/0023",
+        "10.1145/0008"
       ],
       "expected_quality_signal": "summary_length_above_max"
     },
@@ -49,8 +49,8 @@
         "target_count": 2
       },
       "affected_paper_ids": [
-        "10.20944/preprints202608.1849.v1",
-        "10.55041/isjem07213"
+        "10.1145/0007",
+        "10.1145/0021"
       ],
       "expected_quality_signal": "title_length_below_min"
     },
@@ -63,12 +63,12 @@
         "new_published": "2025-08-22"
       },
       "affected_paper_ids": [
-        "10.20944/preprints202604.0339.v1",
-        "10.63125/gseh0k17",
-        "10.36887/2415-8453-2026-3-2",
-        "10.1093/sleep/zsag091.0346",
-        "10.1007/s10278-026-02086-9",
-        "10.52060/juptik.v4i1.4318"
+        "10.1145/0006",
+        "10.1145/0022",
+        "10.1145/0017",
+        "10.1145/0005",
+        "10.1145/0004",
+        "10.1145/0020"
       ],
       "expected_quality_signal": "freshness_sla_violation"
     },
@@ -78,9 +78,9 @@
         "n_duplicates": 3
       },
       "affected_paper_ids": [
-        "10.21203/rs.3.rs-10012178/v1",
-        "10.21203/rs.3.rs-10178277/v1",
-        "10.52060/juptik.v4i1.4318"
+        "10.1145/0010",
+        "10.1145/0011",
+        "10.1145/0020"
       ],
       "expected_quality_signal": "paper_id_unique_violation"
     }

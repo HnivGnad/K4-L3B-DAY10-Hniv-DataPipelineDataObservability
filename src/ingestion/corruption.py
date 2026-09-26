@@ -130,7 +130,12 @@ def _apply_stale_date(df: pd.DataFrame, log: dict, run_date: datetime) -> pd.Dat
     Args:
         run_date: thời điểm hiện tại để tính age_days.
     """
-    target_count = min(3, len(df))
+    # Duplicate corruption runs after this step and can add up to three rows.
+    # Select enough stale source rows to keep the final stale ratio strictly
+    # above the 25% SLA even if none of the duplicated rows is stale.
+    expected_duplicate_rows = min(3, len(df))
+    expected_final_rows = len(df) + expected_duplicate_rows
+    target_count = min(len(df), int(expected_final_rows * 0.25) + 1)
     target_indices = RNG.sample(range(len(df)), k=target_count)
     affected = df.iloc[target_indices]["paper_id"].tolist()
     days_back = 400  # > 180 ngưỡng Freshness
@@ -148,6 +153,7 @@ def _apply_stale_date(df: pd.DataFrame, log: dict, run_date: datetime) -> pd.Dat
             "params": {
                 "days_back": days_back,
                 "target_count": target_count,
+                "stale_ratio_threshold": 0.25,
                 "new_published": new_published,
             },
             "affected_paper_ids": affected,
