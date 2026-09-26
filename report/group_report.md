@@ -15,11 +15,11 @@
 
 | STT | Họ và tên | MSSV | Vai trò chính | Module/deliverable sở hữu |
 | --: | --- | --- | --- | --- |
-| 1 | [Họ tên] | [MSSV] | [Vai trò] | [File, hàm hoặc artifact] |
-| 2 | [Họ tên] | [MSSV] | [Vai trò] | [File, hàm hoặc artifact] |
-| 3 | [Họ tên] | [MSSV] | [Vai trò] | [File, hàm hoặc artifact] |
-| 4 | [Nếu có] | [MSSV] | [Vai trò] | [File, hàm hoặc artifact] |
-| 5 | [Nếu có] | [MSSV] | [Vai trò] | [File, hàm hoặc artifact] |
+| 1 | Vinh |  | Pipeline Integration & Evidence Owner | `src/pipelines/phase1.py`, `src/pipelines/corruption_flow.py`; tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu và checklist nộp bài |
+| 2 | Giang |  | Source & Data Lineage Owner | `src/ingestion/crossref.py`; parse Crossref, retry/fallback, raw response, raw records và schema đầu vào |
+| 3 | Đạt |  | Cleaning & Evaluation-set Owner | `src/ingestion/cleaning.py`, `src/evaluation/testset.py`; cleaned dataset, `text_for_embedding` và test set 10 câu |
+| 4 | Dũng |  | Data Observability & Reporting Owner | `src/observability/quality.py`, `src/observability/reporting.py`; GX 1.x, freshness SLA, quality artifacts và báo cáo Markdown |
+| 5 | Thái |  | Corruption & Repair Owner | `src/ingestion/corruption.py`; sáu kịch bản corruption, corruption log, kiểm chứng corrupted/repaired data và repair idempotent từ raw records |
 
 ## 2. Tóm tắt kết quả
 
