@@ -11,7 +11,7 @@
 | STT | Họ và tên | MSSV | Email | Vai trò & Phân công công việc | Báo cáo cá nhân |
 |---:|---|---|---|---|---|
 | 1 | Đặng Thế Vinh | `2A202602587` | `vjnhdang03@gmail.com` | Trưởng nhóm / Pipeline Integration & Evidence Owner — `src/pipelines/phase1.py`, tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu | `report/report/2A202602587_DangTheVinh.md` |
-| 2 | Nguyễn Thanh Giang | `2A202602xxx` | `giang.nt@example.com` | Source & Data Lineage Owner — `src/ingestion/crossref.py`, parse Crossref, retry/backoff, raw response, raw records | `report/<MSSV>_ThanhGiang.md` |
+| 2 | Nguyễn Thanh Giang | `2A202602576` | `giang1462004@gmail.com` | Source & Data Lineage Owner — `src/ingestion/crossref.py`, parse Crossref, retry/backoff, raw response, raw records | `report/2A202602576_NguyenThanhGiang.md` ✅ |
 | 3 | Nguyễn Tất Đạt | `2A202602578` | `dat111104@gmail.com` | Cleaning & Evaluation-set Owner — `src/ingestion/cleaning.py`, `src/evaluation/testset.py`, cleaned dataset, `text_for_embedding` 5 phần, test set 10 câu; hỗ trợ rà soát tích hợp | `report/2A202602578_NguyenTatDat.md` ✅ |
 | 4 | Hoàng Quốc Dũng | `2A202602523` | `quocdung.work99@gmail.com` | Data Observability & Reporting Owner — `src/observability/quality.py`, `src/observability/reporting.py`, GX 1.x ephemeral context, Freshness SLA, Markdown reports | `report/2A202602523_HoangQuocDung.md` |
 | 5 | **Đặng Văn Thái Anh** | **`2A202602407`** | `danganh01032004@gmail.com` | Corruption & Repair Owner — `src/ingestion/corruption.py`, 6 corruption scenarios, `data/results/corruption_log.json`, kiểm chứng corrupted/repaired, repair idempotent từ raw records, thiết kế mapping corruption ↔ GX expectations | `report/2A202602407_DangVanThaiAnh.md` ✅ |
@@ -43,7 +43,7 @@
 - **Điều học được / Đóng góp chính:**
   - Hiểu sâu thiết kế Idempotent Pipeline với 3 collection ChromaDB tách biệt để so sánh khách quan.
 
-### ## Nguyễn Thanh Giang
+### ## Nguyễn Thanh Giang — 2A202602576
 - **Vai trò:** Source & Data Lineage Owner.
 - **Công việc chi tiết đã hoàn thành:**
   - `src/ingestion/crossref.py`: parse `payload["message"]["items"]` → list `PaperRecord` với DOI làm `paper_id` ổn định.
