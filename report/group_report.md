@@ -15,7 +15,7 @@
 
 | STT | Họ và tên | MSSV | Vai trò chính | Module/deliverable sở hữu |
 | --: | --- | --- | --- | --- |
-| 1 | Nguyễn Hoàng Vinh | `2A202602xxx` | Pipeline Integration & Evidence Owner | `src/pipelines/phase1.py`, tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu |
+| 1 | Đặng Thế Vinh | `2A202602587` | Pipeline Integration & Evidence Owner | `src/pipelines/phase1.py`, tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu |
 | 2 | Nguyễn Thanh Giang | `2A202602xxx` | Source & Data Lineage Owner | `src/ingestion/crossref.py`; parse Crossref, retry/backoff, raw response, raw records |
 | 3 | Nguyễn Tất Đạt | `2A202602578` | Cleaning & Evaluation-set Owner | `src/ingestion/cleaning.py`, `src/evaluation/testset.py`; cleaned dataset 24 dòng, `text_for_embedding` 5 phần, test set 10 câu; [báo cáo cá nhân](2A202602578_NguyenTatDat.md) |
 | 4 | Hoàng Quốc Dũng | `2A202602523` | Data Observability & Reporting Owner | `src/observability/quality.py`, `src/observability/reporting.py`; GX 1.x ephemeral context (7 expectations), Freshness SLA, Markdown reports |

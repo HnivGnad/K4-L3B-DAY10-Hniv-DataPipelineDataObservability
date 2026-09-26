@@ -10,13 +10,12 @@
 
 | STT | Họ và tên | MSSV | Email | Vai trò & Phân công công việc | Báo cáo cá nhân |
 |---:|---|---|---|---|---|
-| 1 | Nguyễn Hoàng Vinh | `2A202602xxx` | `vinh.nh@example.com` | Trưởng nhóm / Pipeline Integration & Evidence Owner — `src/pipelines/phase1.py`, tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu | `report/<MSSV>_HoangVinh.md` |
+| 1 | Đặng Thế Vinh | `2A202602587` | `vjnhdang03@gmail.com` | Trưởng nhóm / Pipeline Integration & Evidence Owner — `src/pipelines/phase1.py`, tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu | `report/report/2A202602587_DangTheVinh.md` |
 | 2 | Nguyễn Thanh Giang | `2A202602xxx` | `giang.nt@example.com` | Source & Data Lineage Owner — `src/ingestion/crossref.py`, parse Crossref, retry/backoff, raw response, raw records | `report/<MSSV>_ThanhGiang.md` |
 | 3 | Nguyễn Tất Đạt | `2A202602578` | `dat111104@gmail.com` | Cleaning & Evaluation-set Owner — `src/ingestion/cleaning.py`, `src/evaluation/testset.py`, cleaned dataset, `text_for_embedding` 5 phần, test set 10 câu; hỗ trợ rà soát tích hợp | `report/2A202602578_NguyenTatDat.md` ✅ |
 | 4 | Hoàng Quốc Dũng | `2A202602523` | `quocdung.work99@gmail.com` | Data Observability & Reporting Owner — `src/observability/quality.py`, `src/observability/reporting.py`, GX 1.x ephemeral context, Freshness SLA, Markdown reports | `report/<MSSV>_HoangQuocDung.md` |
 | 5 | **Đặng Văn Thái Anh** | **`2A202602407`** | `danganh01032004@gmail.com` | Corruption & Repair Owner — `src/ingestion/corruption.py`, 6 corruption scenarios, `data/results/corruption_log.json`, kiểm chứng corrupted/repaired, repair idempotent từ raw records, thiết kế mapping corruption ↔ GX expectations | `report/2A202602407_DangVanThaiAnh.md` ✅ |
 
-> **Ghi chú:** Vinh và Giang vẫn có MSSV/email placeholder, cần chính chủ sở hữu xác nhận trước khi nộp. Tên Git/GitHub Đạt cung cấp: `Nguyen Dat` / `Gaohonggg`; Git author là `Nguyen Dat <dat111104@gmail.com>`.
 
 ---
 
@@ -24,7 +23,7 @@
 
 | Thành viên | Commit chính (trên nhánh `main`) | Module chịu trách nhiệm | Bằng chứng |
 |---|---|---|---|
-| Nguyễn Hoàng Vinh | `69257f2 baseline index + evaluation` | `src/pipelines/phase1.py` | `data/results/baseline_metrics.json`, `data/chroma/` |
+| Đặng Thế Vinh | `69257f2 baseline index + evaluation` | `src/pipelines/phase1.py` | `data/results/baseline_metrics.json`, `data/chroma/` |
 | Nguyễn Thanh Giang | `ddcd76b complete crossref ingestion` | `src/ingestion/crossref.py` | `data/raw/crossref_response.json`, `data/raw/crossref_records.json` |
 | Nguyễn Tất Đạt | `e590b6d Tat Dat done step 2`, `94c362f CLEAN SCHEMA`, `10895d9 Tat dat final` | Sở hữu `src/ingestion/cleaning.py`, `src/evaluation/testset.py`; hỗ trợ rà soát tích hợp trong `10895d9` | `data/clean/papers_clean.json`, `data/eval/test_set.json`, `docs/CLEAN_SCHEMA.md`, `report/2A202602578_NguyenTatDat.md` |
 | Hoàng Quốc Dũng | `e6c4662 Add Dung observability and baseline reports`, `8cc8cd5 Merge branch feature/2A202602523-dung-observability` | `src/observability/quality.py`, `src/observability/reporting.py` | `data/quality/*.json`, `data/reports/*.md` |
@@ -34,7 +33,7 @@
 
 ## # Cá nhân
 
-### ## Nguyễn Hoàng Vinh (Trưởng nhóm)
+### ## Đặng Thế Vinh - 2A202602587 (Trưởng nhóm)
 - **Vai trò:** Pipeline Integration & Evidence Owner.
 - **Công việc chi tiết đã hoàn thành:**
   - Thiết lập cấu hình `core/config.py` với paths cho 3 trạng thái (baseline/corrupted/repaired) + LLM providers.
