@@ -5,13 +5,15 @@
 | Field | Value |
 | --- | --- |
 | source | Crossref REST API |
-| raw_response_status | ok |
-| raw_response_items | 24 |
-| raw_records | 24 |
+| source_mode | local_raw_snapshot |
+| query | agentic retrieval augmented generation large language model |
+| filter | from-pub-date:2026-03-30,has-abstract:true |
+| records | 24 |
 | clean_records | 24 |
 | raw_response_path | data\raw\crossref_response.json |
 | raw_records_path | data\raw\crossref_records.json |
-| clean_data_path | data\clean\papers_clean.json |
+| collection_name | papers-baseline |
+| run_started_at | 2026-09-26T05:05:20.887793+00:00 |
 
 ## Evaluation
 
