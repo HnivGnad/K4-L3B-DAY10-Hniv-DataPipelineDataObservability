@@ -12,11 +12,11 @@
 |---:|---|---|---|---|---|
 | 1 | Nguyễn Hoàng Vinh | `2A202602xxx` | `vinh.nh@example.com` | Trưởng nhóm / Pipeline Integration & Evidence Owner — `src/pipelines/phase1.py`, tích hợp end-to-end, cấu hình, metrics, bằng chứng nghiệm thu | `report/<MSSV>_HoangVinh.md` |
 | 2 | Nguyễn Thanh Giang | `2A202602xxx` | `giang.nt@example.com` | Source & Data Lineage Owner — `src/ingestion/crossref.py`, parse Crossref, retry/backoff, raw response, raw records | `report/<MSSV>_ThanhGiang.md` |
-| 3 | Nguyễn Đạt | `2A202602xxx` | `dat.n@example.com` | Cleaning & Evaluation-set Owner — `src/ingestion/cleaning.py`, `src/evaluation/testset.py`, cleaned dataset, `text_for_embedding` 5 phần, test set 10 câu | `report/<MSSV>_NguyenDat.md` |
+| 3 | Nguyễn Tất Đạt | `2A202602578` | `dat111104@gmail.com` | Cleaning & Evaluation-set Owner — `src/ingestion/cleaning.py`, `src/evaluation/testset.py`, cleaned dataset, `text_for_embedding` 5 phần, test set 10 câu; hỗ trợ rà soát tích hợp | `report/2A202602578_NguyenTatDat.md` ✅ |
 | 4 | Hoàng Quốc Dũng | `2A202602523` | `quocdung.work99@gmail.com` | Data Observability & Reporting Owner — `src/observability/quality.py`, `src/observability/reporting.py`, GX 1.x ephemeral context, Freshness SLA, Markdown reports | `report/<MSSV>_HoangQuocDung.md` |
 | 5 | **Đặng Văn Thái Anh** | **`2A202602407`** | `danganh01032004@gmail.com` | Corruption & Repair Owner — `src/ingestion/corruption.py`, 6 corruption scenarios, `data/results/corruption_log.json`, kiểm chứng corrupted/repaired, repair idempotent từ raw records, thiết kế mapping corruption ↔ GX expectations | `report/2A202602407_DangVanThaiAnh.md` ✅ |
 
-> **Ghi chú:** Email là placeholder tuân thủ SUBMISSION.md (không commit API key/secret). MSSV các thành viên khác cần được điền bởi chính chủ sở hữu trước khi nộp — bản này tạm dùng `xxx` cho 4 thành viên chưa tự khai.
+> **Ghi chú:** Vinh và Giang vẫn có MSSV/email placeholder, cần chính chủ sở hữu xác nhận trước khi nộp. Tên Git/GitHub Đạt cung cấp: `Nguyen Dat` / `Gaohonggg`; Git author là `Nguyen Dat <dat111104@gmail.com>`.
 
 ---
 
@@ -26,7 +26,7 @@
 |---|---|---|---|
 | Nguyễn Hoàng Vinh | `69257f2 baseline index + evaluation` | `src/pipelines/phase1.py` | `data/results/baseline_metrics.json`, `data/chroma/` |
 | Nguyễn Thanh Giang | `ddcd76b complete crossref ingestion` | `src/ingestion/crossref.py` | `data/raw/crossref_response.json`, `data/raw/crossref_records.json` |
-| Nguyễn Đạt | `94c362f CLEAN SCHEMA`, `e590b6d Tat Dat done step 2` | `src/ingestion/cleaning.py`, `src/evaluation/testset.py` | `data/clean/papers_clean.json`, `data/eval/test_set.json` |
+| Nguyễn Tất Đạt | `e590b6d Tat Dat done step 2`, `94c362f CLEAN SCHEMA`, `10895d9 Tat dat final` | Sở hữu `src/ingestion/cleaning.py`, `src/evaluation/testset.py`; hỗ trợ rà soát tích hợp trong `10895d9` | `data/clean/papers_clean.json`, `data/eval/test_set.json`, `docs/CLEAN_SCHEMA.md`, `report/2A202602578_NguyenTatDat.md` |
 | Hoàng Quốc Dũng | `e6c4662 Add Dung observability and baseline reports`, `8cc8cd5 Merge branch feature/2A202602523-dung-observability` | `src/observability/quality.py`, `src/observability/reporting.py` | `data/quality/*.json`, `data/reports/*.md` |
 | Đặng Văn Thái Anh | `6aaae05 corruption.py + pytest + mapping`, `42d6182 ing`, `f5b47d9 Merge branch 'Tanh'` | `src/ingestion/corruption.py`, hỗ trợ `src/pipelines/corruption_flow.py` | `data/results/corruption_log.json`, `data/clean/papers_clean_corrupted.*`, `data/clean/papers_clean_repaired.*`, `data/results/{corrupted,repaired}_metrics.json`, `tests/test_corruption.py`, `docs/CORRUPTION_GX_MAPPING.md` |
 
@@ -53,12 +53,14 @@
 - **Điều học được / Đóng góp chính:**
   - Kỹ thuật truy vết nguồn gốc dữ liệu (Data Lineage) — bảo toàn raw snapshot trước khi biến đổi, fallback offline đảm bảo reproducibility.
 
-### ## Nguyễn Đạt
+### ## Nguyễn Tất Đạt — 2A202602578
 - **Vai trò:** Cleaning & Evaluation-set Owner.
 - **Công việc chi tiết đã hoàn thành:**
   - `src/ingestion/cleaning.py`: bỏ JATS XML tag bằng `re.sub(r"<[^>]*>", " ")`, parse `published` qua `pd.to_datetime`, tính `age_days = (run_day - published).days`, infer topic từ title khi thiếu `subject`, dedupe theo `paper_id`.
   - `build_embedding_text()`: cấu trúc 5 phần `Title / Summary / Authors / Categories / Published`.
   - `src/evaluation/testset.py::build_test_set()`: 10 câu theo 4 loại (summary/authors/date/categories), chọn paper có title sạch (không có `'`), `ground_truth_doc_ids` trỏ đúng 1 paper.
+  - `docs/CLEAN_SCHEMA.md`: ghi contract clean schema và nguồn `category_source=title_rules` cho snapshot không có Crossref subject.
+  - Commit `10895d9`: hỗ trợ rà soát evaluation dùng semantic retrieval, đồng bộ corruption/quality gate, Auto-Repair và UI; chi tiết phạm vi và bằng chứng nằm trong báo cáo cá nhân.
 - **Điều học được / Đóng góp chính:**
   - Cách thiết kế clean schema ổn định cho cả 3 trạng thái và test set deterministic với paper_id không trùng.
 
