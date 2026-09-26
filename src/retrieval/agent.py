@@ -3,14 +3,35 @@ from __future__ import annotations
 from typing import Any
 
 from langchain.agents import create_agent
+from langchain_core.messages import AIMessage
 from langchain.tools import tool
 
-from core.config import Settings
+from core.config import Settings, normalized_provider
 from retrieval.index import LocalEmbeddingIndex
 from retrieval.llm import build_llm
+from retrieval.qa import answer_question
+
+
+class MockPaperAgent:
+    """Deterministic local agent for demos without an external LLM."""
+
+    def __init__(self, settings: Settings, index: LocalEmbeddingIndex):
+        self.settings = settings
+        self.index = index
+
+    def invoke(self, payload: dict[str, Any]) -> dict[str, Any]:
+        messages = payload.get("messages", [])
+        if not messages:
+            raise ValueError("The mock agent needs a user message")
+        question = messages[-1]["content"]
+        result = answer_question(question, self.settings, self.index)
+        return {"messages": [*messages, AIMessage(content=result.answer)]}
 
 
 def build_agent(settings: Settings, index: LocalEmbeddingIndex):
+    if normalized_provider(settings) == "mock":
+        return MockPaperAgent(settings, index)
+
     @tool
     def semantic_search_papers(query: str, top_k: int = 4) -> str:
         """Search the local paper corpus with embeddings and return the most relevant papers."""

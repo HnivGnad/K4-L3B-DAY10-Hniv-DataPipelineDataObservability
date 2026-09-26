@@ -7,7 +7,7 @@
       "column": null,
       "success": false,
       "result": {
-        "observed_value": 23
+        "observed_value": 22
       }
     },
     {
@@ -15,7 +15,7 @@
       "column": "paper_id",
       "success": true,
       "result": {
-        "element_count": 23,
+        "element_count": 22,
         "unexpected_count": 0,
         "unexpected_percent": 0.0,
         "partial_unexpected_list": [],
@@ -28,7 +28,7 @@
       "column": "title",
       "success": true,
       "result": {
-        "element_count": 23,
+        "element_count": 22,
         "unexpected_count": 0,
         "unexpected_percent": 0.0,
         "partial_unexpected_list": [],
@@ -41,7 +41,7 @@
       "column": "summary",
       "success": true,
       "result": {
-        "element_count": 23,
+        "element_count": 22,
         "unexpected_count": 0,
         "unexpected_percent": 0.0,
         "partial_unexpected_list": [],
@@ -54,24 +54,24 @@
       "column": "paper_id",
       "success": false,
       "result": {
-        "element_count": 23,
+        "element_count": 22,
         "unexpected_count": 6,
-        "unexpected_percent": 26.08695652173913,
+        "unexpected_percent": 27.27272727272727,
         "partial_unexpected_list": [
-          "10.21203/rs.3.rs-10012178/v1",
+          "10.1007/s10278-026-02086-9",
           "10.21203/rs.3.rs-10178277/v1",
-          "10.52060/juptik.v4i1.4318",
-          "10.21203/rs.3.rs-10012178/v1",
+          "10.55041/isjem07213",
           "10.21203/rs.3.rs-10178277/v1",
-          "10.52060/juptik.v4i1.4318"
+          "10.55041/isjem07213",
+          "10.1007/s10278-026-02086-9"
         ],
         "missing_count": 0,
         "missing_percent": 0.0,
-        "unexpected_percent_total": 26.08695652173913,
-        "unexpected_percent_nonmissing": 26.08695652173913,
+        "unexpected_percent_total": 27.27272727272727,
+        "unexpected_percent_nonmissing": 27.27272727272727,
         "partial_unexpected_counts": [
           {
-            "value": "10.21203/rs.3.rs-10012178/v1",
+            "value": "10.1007/s10278-026-02086-9",
             "count": 2
           },
           {
@@ -79,17 +79,17 @@
             "count": 2
           },
           {
-            "value": "10.52060/juptik.v4i1.4318",
+            "value": "10.55041/isjem07213",
             "count": 2
           }
         ],
         "partial_unexpected_index_list": [
-          6,
+          0,
           7,
           16,
+          19,
           20,
-          21,
-          22
+          21
         ]
       }
     },
@@ -98,24 +98,24 @@
       "column": "title",
       "success": false,
       "result": {
-        "element_count": 23,
+        "element_count": 22,
         "unexpected_count": 2,
-        "unexpected_percent": 8.695652173913043,
+        "unexpected_percent": 9.090909090909092,
         "partial_unexpected_list": [
           "An Agen",
-          "Specula"
+          "A Found"
         ],
         "missing_count": 0,
         "missing_percent": 0.0,
-        "unexpected_percent_total": 8.695652173913043,
-        "unexpected_percent_nonmissing": 8.695652173913043,
+        "unexpected_percent_total": 9.090909090909092,
+        "unexpected_percent_nonmissing": 9.090909090909092,
         "partial_unexpected_counts": [
           {
-            "value": "An Agen",
+            "value": "A Found",
             "count": 1
           },
           {
-            "value": "Specula",
+            "value": "An Agen",
             "count": 1
           }
         ],
@@ -130,28 +130,70 @@
       "column": "summary",
       "success": false,
       "result": {
-        "element_count": 23,
-        "unexpected_count": 3,
-        "unexpected_percent": 13.043478260869565,
+        "element_count": 22,
+        "unexpected_count": 4,
+        "unexpected_percent": 18.181818181818183,
         "partial_unexpected_list": [
+          "",
           "",
           "",
           ""
         ],
         "missing_count": 0,
         "missing_percent": 0.0,
-        "unexpected_percent_total": 13.043478260869565,
-        "unexpected_percent_nonmissing": 13.043478260869565,
+        "unexpected_percent_total": 18.181818181818183,
+        "unexpected_percent_nonmissing": 18.181818181818183,
         "partial_unexpected_counts": [
           {
             "value": "",
-            "count": 3
+            "count": 4
           }
         ],
         "partial_unexpected_index_list": [
           0,
           3,
-          8
+          8,
+          21
+        ]
+      }
+    },
+    {
+      "expectation": "ExpectColumnValuesToNotMatchRegex",
+      "column": "summary",
+      "success": false,
+      "result": {
+        "element_count": 22,
+        "unexpected_count": 4,
+        "unexpected_percent": 18.181818181818183,
+        "partial_unexpected_list": [
+          " ###CORRUPT### The US Army Corps of Engineers (USACE) Civil Works (CW) research and development (R&D) mission is to address challenging environmental sustainability problems through innovative science and engineering, which helps to ensure a safer, more prosperous, and more resilient nation. To achieve this, the US Army Engineer Research and Development Center (ERDC) plans, executes, leads, and directs many R&D programs in coordination with USACE Headquarters, Districts, and Divisions through its multiple strategic focus areas, which include infrastructure, water modeling, crisis preparedness, ecosystem, sediment management, data, artificial intelligence, and robotics. In this process, much information is generated, including internal progress reviews, financial reports, scopes of work, work package planning, and success stories. ###CORRUPT### ",
+          " ###CORRUPT### Abstract Time-series foundation models and retrieval-based augmentation have recently emerged as relevant tools for financial forecasting, yet it remains unclear when explicit historical retrieval helps a pre-trained probabilistic forecaster in noisy equity settings. This study evaluates that question through Cross-Market Retrieval-Augmented Lag-Llama (CM-RAF-Lag-Llama), a controlled framework for comparing Lag-Llama-only forecasts with retrieval-augmented forecasts across emerging and developed market panels. The main validation uses three balanced seven-asset panels, IDX7, US7, and JP7, producing a 48-configuration panel-context-horizon grid across four context lengths and four prediction horizons. The hybrid system retrieves analogous historical windows from an indexed memory and blends the retrieved continuation with the Lag-Llama forecast while preserving the same forecasting backbone. In the same-backbone return validation, at least one retrieval variant reduces Lag-Llama MSE in all 48 configurations, with aggregate lower-error retrieval MSE reductions of 28.85\\% for IDX7, 27.27\\% for US7, and 33.60\\% for JP7. A second OHLCV-derived stock-feature experiment evaluates log-price, log-volume, range-volatility, and 20-day realized-volatility targets across 72 matched configurations. In that experiment, validation-selected RAF reduces MSE relative to Lag-Llama-only in 68 of 72 configurations and records the lowest MSE among the compared systems in 22 configurations, including 17 of 18 non-log-price US7 settings. A mechanism-level single-series ablation further compares Lag-Llama-only against Lag-Llama + RAF under zero-shot and scheduler-based inference, showing that retrieval effects are horizon-sensitive. The results indicate that retrieval can serve as an external-memory correction for Lag-Llama under selected equity targets, especially when volatility or volume structure provides reusable historical analogs. ###CORRUPT### ",
+          " ###CORRUPT### The rapid evolution of large language models (LLMs) has catalyzed a shift from passive AI systems toward autonomous agentic architectures capable of reasoning, memory, tool use, and multi-agent collaboration. This bibliometric review characterizes the emerging field through 810 publications retrieved from the Web of Science Core Collection for the period 2023\u20132025. Annual output rose sharply over this window\u2014from 4 publications in 2023 to 96 in 2024 and 710 in 2025\u2014accompanied by a parallel rise in citations, indicating rapid mainstream adoption. Author-keyword analysis reveals a landscape dominated by large language models, artificial intelligence, and multi-agent systems, with agentic AI, generative AI, and retrieval-augmented generation (RAG) emerging as core themes. Research output is geographically concentrated, led by China and the United States, and is distributed across a broad range of engineering, applied-science, and domain-specific journals rather than a single specialist venue, reflecting the field's cross-disciplinary uptake. Synthesizing this corpus, we organize the technical landscape around reasoning, memory, tool integration and RAG, and multi-agent orchestration; survey application domains spanning healthcare, scientific discovery, education, and software engineering, with emerging activity in finance and law; and analyze the principal challenges\u2014hallucination, trust and robustness, inter-agent coordination, scalability, and governance. The review provides a structured, evidence-based map of agentic AI research to orient researchers and practitioners navigating this rapidly evolving field. ###CORRUPT### ",
+          " ###CORRUPT### Abstract Time-series foundation models and retrieval-based augmentation have recently emerged as relevant tools for financial forecasting, yet it remains unclear when explicit historical retrieval helps a pre-trained probabilistic forecaster in noisy equity settings. This study evaluates that question through Cross-Market Retrieval-Augmented Lag-Llama (CM-RAF-Lag-Llama), a controlled framework for comparing Lag-Llama-only forecasts with retrieval-augmented forecasts across emerging and developed market panels. The main validation uses three balanced seven-asset panels, IDX7, US7, and JP7, producing a 48-configuration panel-context-horizon grid across four context lengths and four prediction horizons. The hybrid system retrieves analogous historical windows from an indexed memory and blends the retrieved continuation with the Lag-Llama forecast while preserving the same forecasting backbone. In the same-backbone return validation, at least one retrieval variant reduces Lag-Llama MSE in all 48 configurations, with aggregate lower-error retrieval MSE reductions of 28.85\\% for IDX7, 27.27\\% for US7, and 33.60\\% for JP7. A second OHLCV-derived stock-feature experiment evaluates log-price, log-volume, range-volatility, and 20-day realized-volatility targets across 72 matched configurations. In that experiment, validation-selected RAF reduces MSE relative to Lag-Llama-only in 68 of 72 configurations and records the lowest MSE among the compared systems in 22 configurations, including 17 of 18 non-log-price US7 settings. A mechanism-level single-series ablation further compares Lag-Llama-only against Lag-Llama + RAF under zero-shot and scheduler-based inference, showing that retrieval effects are horizon-sensitive. The results indicate that retrieval can serve as an external-memory correction for Lag-Llama under selected equity targets, especially when volatility or volume structure provides reusable historical analogs. ###CORRUPT### "
+        ],
+        "missing_count": 0,
+        "missing_percent": 0.0,
+        "unexpected_percent_total": 18.181818181818183,
+        "unexpected_percent_nonmissing": 18.181818181818183,
+        "partial_unexpected_counts": [
+          {
+            "value": " ###CORRUPT### Abstract Time-series foundation models and retrieval-based augmentation have recently emerged as relevant tools for financial forecasting, yet it remains unclear when explicit historical retrieval helps a pre-trained probabilistic forecaster in noisy equity settings. This study evaluates that question through Cross-Market Retrieval-Augmented Lag-Llama (CM-RAF-Lag-Llama), a controlled framework for comparing Lag-Llama-only forecasts with retrieval-augmented forecasts across emerging and developed market panels. The main validation uses three balanced seven-asset panels, IDX7, US7, and JP7, producing a 48-configuration panel-context-horizon grid across four context lengths and four prediction horizons. The hybrid system retrieves analogous historical windows from an indexed memory and blends the retrieved continuation with the Lag-Llama forecast while preserving the same forecasting backbone. In the same-backbone return validation, at least one retrieval variant reduces Lag-Llama MSE in all 48 configurations, with aggregate lower-error retrieval MSE reductions of 28.85\\% for IDX7, 27.27\\% for US7, and 33.60\\% for JP7. A second OHLCV-derived stock-feature experiment evaluates log-price, log-volume, range-volatility, and 20-day realized-volatility targets across 72 matched configurations. In that experiment, validation-selected RAF reduces MSE relative to Lag-Llama-only in 68 of 72 configurations and records the lowest MSE among the compared systems in 22 configurations, including 17 of 18 non-log-price US7 settings. A mechanism-level single-series ablation further compares Lag-Llama-only against Lag-Llama + RAF under zero-shot and scheduler-based inference, showing that retrieval effects are horizon-sensitive. The results indicate that retrieval can serve as an external-memory correction for Lag-Llama under selected equity targets, especially when volatility or volume structure provides reusable historical analogs. ###CORRUPT### ",
+            "count": 2
+          },
+          {
+            "value": " ###CORRUPT### The US Army Corps of Engineers (USACE) Civil Works (CW) research and development (R&D) mission is to address challenging environmental sustainability problems through innovative science and engineering, which helps to ensure a safer, more prosperous, and more resilient nation. To achieve this, the US Army Engineer Research and Development Center (ERDC) plans, executes, leads, and directs many R&D programs in coordination with USACE Headquarters, Districts, and Divisions through its multiple strategic focus areas, which include infrastructure, water modeling, crisis preparedness, ecosystem, sediment management, data, artificial intelligence, and robotics. In this process, much information is generated, including internal progress reviews, financial reports, scopes of work, work package planning, and success stories. ###CORRUPT### ",
+            "count": 1
+          },
+          {
+            "value": " ###CORRUPT### The rapid evolution of large language models (LLMs) has catalyzed a shift from passive AI systems toward autonomous agentic architectures capable of reasoning, memory, tool use, and multi-agent collaboration. This bibliometric review characterizes the emerging field through 810 publications retrieved from the Web of Science Core Collection for the period 2023\u20132025. Annual output rose sharply over this window\u2014from 4 publications in 2023 to 96 in 2024 and 710 in 2025\u2014accompanied by a parallel rise in citations, indicating rapid mainstream adoption. Author-keyword analysis reveals a landscape dominated by large language models, artificial intelligence, and multi-agent systems, with agentic AI, generative AI, and retrieval-augmented generation (RAG) emerging as core themes. Research output is geographically concentrated, led by China and the United States, and is distributed across a broad range of engineering, applied-science, and domain-specific journals rather than a single specialist venue, reflecting the field's cross-disciplinary uptake. Synthesizing this corpus, we organize the technical landscape around reasoning, memory, tool integration and RAG, and multi-agent orchestration; survey application domains spanning healthcare, scientific discovery, education, and software engineering, with emerging activity in finance and law; and analyze the principal challenges\u2014hallucination, trust and robustness, inter-agent coordination, scalability, and governance. The review provides a structured, evidence-based map of agentic AI research to orient researchers and practitioners navigating this rapidly evolving field. ###CORRUPT### ",
+            "count": 1
+          }
+        ],
+        "partial_unexpected_index_list": [
+          4,
+          7,
+          18,
+          19
         ]
       }
     }
@@ -159,9 +201,9 @@
   "freshness": {
     "latest_published": "2026-08-27",
     "oldest_published": "2025-08-22",
-    "stale_rows": 7,
-    "total_rows": 23,
-    "stale_ratio": 0.30434782608695654,
+    "stale_rows": 8,
+    "total_rows": 22,
+    "stale_ratio": 0.36363636363636365,
     "freshness_threshold_days": 180,
     "stale_ratio_threshold": 0.25,
     "invalid_age_rows": 0,

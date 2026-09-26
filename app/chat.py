@@ -1,10 +1,10 @@
-"""Chat layer that combines retrieval (in-app) with Gemini through the existing LLM factory."""
+"""Chat layer that combines retrieval with the configured LLM provider."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Iterator
 
-from core.config import Settings, load_settings
+from core.config import Settings, load_settings, normalized_provider
 from core.utils import first_sentence
 from retrieval.llm import build_llm
 
@@ -61,16 +61,23 @@ def build_prompt(question: str, hits: list[RetrievalHit]) -> str:
 
 
 def _llm(settings: Settings):
-    """Build the configured Gemini chat model via the existing factory."""
+    """Build the configured chat model via the existing factory."""
     return build_llm(settings=settings, temperature=0.0)
 
 
-def stream_answer(question: str, state: str, settings: Settings | None = None) -> tuple[list[RetrievalHit], Iterator[str]]:
-    """Return the retrieved hits and a streaming iterator of Gemini response chunks."""
+def stream_answer(
+    question: str,
+    state: str,
+    settings: Settings | None = None,
+    top_k: int = 4,
+) -> tuple[list[RetrievalHit], Iterator[str]]:
+    """Return the retrieved hits and a streaming iterator of LLM response chunks."""
     if state not in STATES:
         raise ValueError(f"Unknown state '{state}'. Expected one of {STATES}.")
     settings = settings or load_settings()
-    hits = retrieve(question, state)
+    hits = retrieve(question, state, top_k=top_k)
+    if normalized_provider(settings) == "mock":
+        return hits, iter([_extract_from_hits(question, hits)])
     prompt = build_prompt(question, hits)
     llm = _llm(settings)
 
@@ -89,9 +96,13 @@ def stream_answer(question: str, state: str, settings: Settings | None = None) -
 def quick_extract_answer(question: str, state: str) -> str:
     """Extract a one-shot answer using the same heuristic rules as src/retrieval/qa.py.
 
-    Used for the deterministic side-by-side comparison; not the streamed Gemini path.
+    Used for deterministic comparisons; not the streamed LLM path.
     """
-    hits = retrieve(question, state, top_k=1)
+    return _extract_from_hits(question, retrieve(question, state, top_k=1))
+
+
+def _extract_from_hits(question: str, hits: list[RetrievalHit]) -> str:
+    """Use the same grounded extraction for mock chat and comparisons."""
     if not hits:
         return "I don't know from the indexed corpus."
     top = hits[0]

@@ -4,6 +4,8 @@
   "mean_token_f1": 1.0,
   "judge_accuracy": 1.0,
   "mean_judge_score": 5,
+  "answering_mode": "semantic_retrieval_extractive",
+  "judge_fallback_count": 10,
   "ragas": {
     "skipped": "Set RUN_RAGAS=1 to enable the slower Ragas pass."
   }

@@ -14,8 +14,8 @@ from core.utils import safe_slug, write_json
 
 def _freshness_stats(df: pd.DataFrame, settings: Settings) -> dict[str, Any]:
     """Calculate age and publication-date signals shared by both reports."""
-    ages = pd.to_numeric(df["age_days"], errors="coerce")
-    dates = pd.to_datetime(df["published"], errors="coerce", utc=True)
+    ages = pd.to_numeric(df["age_days"], errors="coerce") if "age_days" in df else pd.Series([None] * len(df))
+    dates = pd.to_datetime(df["published"], errors="coerce", utc=True) if "published" in df else pd.to_datetime(pd.Series([None] * len(df)), utc=True)
     total_rows = len(df)
     stale_rows = int((ages > settings.freshness_threshold_days).sum())
     stale_ratio = stale_rows / total_rows if total_rows else None
@@ -38,10 +38,25 @@ def _freshness_stats(df: pd.DataFrame, settings: Settings) -> dict[str, Any]:
 
 def run_data_quality_checks(df: pd.DataFrame, settings: Settings, report_name: str) -> dict[str, Any]:
     """Run GX 1.x checks and a freshness gate, then save their JSON evidence."""
-    required = {"paper_id", "title", "summary", "published", "age_days"}
+    required = {
+        "paper_id", "title", "summary", "published", "age_days",
+        "authors_joined", "categories_joined", "text_for_embedding",
+    }
     missing = sorted(required - set(df.columns))
     if missing:
-        raise ValueError(f"Clean dataset is missing required columns: {', '.join(missing)}")
+        payload = {
+            "report_name": report_name,
+            "success": False,
+            "checks": [{
+                "expectation": "RequiredCleanColumns",
+                "column": None,
+                "success": False,
+                "result": {"missing_columns": missing},
+            }],
+            "freshness": _freshness_stats(df, settings),
+        }
+        write_json(settings.paths.quality_dir / f"{safe_slug(report_name)}_quality_report.json", payload)
+        return payload
 
     # GX 1.x fluent API accepts the in-memory dataframe through batch parameters.
     context = gx.get_context(mode="ephemeral")
@@ -59,6 +74,7 @@ def run_data_quality_checks(df: pd.DataFrame, settings: Settings, report_name: s
         gx.expectations.ExpectColumnValuesToBeUnique(column="paper_id"),
         gx.expectations.ExpectColumnValueLengthsToBeBetween(column="title", min_value=10),
         gx.expectations.ExpectColumnValueLengthsToBeBetween(column="summary", min_value=50),
+        gx.expectations.ExpectColumnValuesToNotMatchRegex(column="summary", regex=r"###CORRUPT###"),
     ]
     checks = []
     for expectation in expectations:
@@ -84,10 +100,6 @@ def run_data_quality_checks(df: pd.DataFrame, settings: Settings, report_name: s
 
 def build_freshness_report(df: pd.DataFrame, settings: Settings, report_path: Path) -> dict[str, Any]:
     """Save publication-date range and stale-paper counts as a JSON report."""
-    required = {"published", "age_days"}
-    missing = sorted(required - set(df.columns))
-    if missing:
-        raise ValueError(f"Clean dataset is missing required columns: {', '.join(missing)}")
     payload = _freshness_stats(df, settings)
     write_json(Path(report_path), payload)
     return payload

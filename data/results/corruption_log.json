@@ -5,16 +5,17 @@
       "params": {
         "drop_ratio": 0.2,
         "sort_key": "published",
-        "n_drop": 4
+        "n_drop": 5
       },
       "affected_paper_ids": [
         "10.21203/rs.3.rs-10489777/v1",
         "10.70267/aitia.2026482489",
         "10.21203/rs.3.rs-10349437/v1",
-        "10.54254/2755-2721/2026.36624"
+        "10.54254/2755-2721/2026.36624",
+        "10.36887/2415-8453-2026-3-2"
       ],
       "before_count": 24,
-      "after_count": 20,
+      "after_count": 19,
       "expected_quality_signal": "row_count_below_min"
     },
     {
@@ -27,7 +28,7 @@
         "10.1007/s10278-026-02086-9",
         "10.21203/rs.3.rs-10423755/v1"
       ],
-      "expected_quality_signal": "null_summary_violation"
+      "expected_quality_signal": "summary_length_below_min"
     },
     {
       "type": "inject_noise",
@@ -40,7 +41,7 @@
         "10.63646/kpqm1958",
         "10.21079/11681/50309"
       ],
-      "expected_quality_signal": "summary_length_above_max"
+      "expected_quality_signal": "noise_token_detected"
     },
     {
       "type": "truncate_title",
@@ -50,7 +51,7 @@
       },
       "affected_paper_ids": [
         "10.20944/preprints202608.1849.v1",
-        "10.55041/isjem07213"
+        "10.63125/gseh0k17"
       ],
       "expected_quality_signal": "title_length_below_min"
     },
@@ -64,11 +65,11 @@
       },
       "affected_paper_ids": [
         "10.20944/preprints202604.0339.v1",
-        "10.63125/gseh0k17",
-        "10.36887/2415-8453-2026-3-2",
+        "10.36948/ijfmr.2026.v08i04.85777",
         "10.1093/sleep/zsag091.0346",
         "10.1007/s10278-026-02086-9",
-        "10.52060/juptik.v4i1.4318"
+        "10.55041/isjem07213",
+        "10.20944/preprints202608.1849.v1"
       ],
       "expected_quality_signal": "freshness_sla_violation"
     },
@@ -78,15 +79,15 @@
         "n_duplicates": 3
       },
       "affected_paper_ids": [
-        "10.21203/rs.3.rs-10012178/v1",
         "10.21203/rs.3.rs-10178277/v1",
-        "10.52060/juptik.v4i1.4318"
+        "10.55041/isjem07213",
+        "10.1007/s10278-026-02086-9"
       ],
       "expected_quality_signal": "paper_id_unique_violation"
     }
   ],
   "seed": 42,
   "baseline_rows": 24,
-  "corrupted_rows": 23,
+  "corrupted_rows": 22,
   "unique_paper_ids": false
 }

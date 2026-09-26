@@ -1,49 +1,30 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from typing import Any
 
 import pandas as pd
 
 from core.config import Settings, load_settings
 from core.utils import now_utc, write_csv, write_json
 from evaluation.metrics import EvaluationBundle, evaluate_pipeline
-from ingestion.cleaning import build_clean_dataframe
 from ingestion.corruption import corrupt_clean_dataframe
-from ingestion.crossref import load_raw_records
 from observability.quality import build_freshness_report, run_data_quality_checks
 from observability.reporting import generate_corruption_report
+from pipelines.auto_repair import auto_repair_if_needed
 from retrieval.index import LocalEmbeddingIndex
-
-
-def _repair_from_raw(settings: Settings, run_date: datetime) -> pd.DataFrame:
-    """Repair idempotent: rebuild dataframe from raw snapshot, KHONG sua truc tiep corrupted.
-
-    Theo PHAN_CONG_NHOM.md muc 3.5 (Thai so huu):
-    - Luon dung repaired dataframe lai tu `data/raw/crossref_records.json` qua cleaning pipeline.
-    - Khong sua va truc tiep corrupted dataframe.
-    - Chay repair nhieu lan cho ket qua tuong duong.
-    """
-    raw_records = load_raw_records(settings.paths.raw_records_json)
-    if not raw_records:
-        raise ValueError(
-            "Repair failed: raw snapshot is empty at "
-            f"{settings.paths.raw_records_json}"
-        )
-    repaired_df = build_clean_dataframe(raw_records, run_date)
-    if not repaired_df["paper_id"].is_unique:
-        raise ValueError("Repair failed: rebuilt dataframe has duplicate paper_id")
-    return repaired_df
 
 
 def _save_state(df: pd.DataFrame, settings: Settings, prefix: str) -> None:
     """Persist a dataframe state to CSV + JSON using the same paths for all three states."""
-    write_csv(df, settings.paths.project_dir / "data" / "clean" / f"papers_clean_{prefix}.csv")
+    paths = {
+        "corrupted": (settings.paths.corrupted_clean_csv, settings.paths.corrupted_clean_json),
+        "repaired": (settings.paths.repaired_clean_csv, settings.paths.repaired_clean_json),
+    }
+    csv_path, json_path = paths[prefix]
+    write_csv(df, csv_path)
     json_records = json.loads(df.to_json(orient="records", date_format="iso"))
-    write_json(
-        settings.paths.project_dir / "data" / "clean" / f"papers_clean_{prefix}.json",
-        json_records,
-    )
+    write_json(json_path, json_records)
 
 
 def _evaluate_state(
@@ -69,13 +50,13 @@ def _evaluate_state(
     )
 
 
-def run_corruption_flow(settings: Settings | None = None) -> dict[str, EvaluationBundle]:
+def run_corruption_flow(settings: Settings | None = None) -> dict[str, Any]:
     """Run the corruption -> evaluate -> repair -> compare flow and write all artifacts."""
     settings = settings or load_settings()
     run_started_at = now_utc()
 
     # 1. Load baseline clean dataframe (phai giong voi phase1)
-    baseline_json = settings.paths.project_dir / "data" / "clean" / "papers_clean.json"
+    baseline_json = settings.paths.clean_json
     if not baseline_json.exists():
         raise FileNotFoundError(
             "Baseline clean dataframe not found. Run `python script/run_phase1.py` first."
@@ -100,7 +81,14 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
     )
     _save_state(corrupted_df, settings, prefix="corrupted")
 
-    # 3. Rebuild index cho CORRUPTED va danh gia
+    # 3. Gate the corrupted data before choosing any state for serving.
+    corrupted_quality = run_data_quality_checks(corrupted_df, settings, "corrupted")
+    corrupted_freshness = build_freshness_report(
+        corrupted_df, settings, settings.paths.corrupted_freshness_report
+    )
+    repair = auto_repair_if_needed(settings, baseline_df, corrupted_quality, run_started_at)
+
+    # 4. Evaluate the damaged state for impact evidence, not for serving.
     corrupted_eval = _evaluate_state(
         settings=settings,
         df=corrupted_df,
@@ -110,16 +98,24 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
         test_set_path=settings.paths.eval_testset,
     )
 
-    # 4. Quality + Freshness tren CORRUPTED (Dung so huu)
-    corrupted_quality = run_data_quality_checks(corrupted_df, settings, "corrupted")
-    corrupted_freshness = build_freshness_report(
-        corrupted_df,
-        settings,
-        settings.paths.corrupted_freshness_report,
-    )
+    if repair.repaired_df is None:
+        write_json(settings.paths.active_state, {
+            "state": "corrupted",
+            "collection_name": settings.corrupted_collection_name,
+            "quality_success": True,
+            "auto_repair_status": "skipped",
+        })
+        return {
+            "baseline": baseline_metrics,
+            "corrupted": corrupted_eval,
+            "repaired": None,
+            "corrupted_quality": corrupted_quality,
+            "repaired_quality": None,
+            "auto_repair": repair.event,
+        }
 
-    # 5. Repair IDEMPOTENT tu raw snapshot (Thai so huu quy tac repair)
-    repaired_df = _repair_from_raw(settings, run_started_at)
+    # 5. The gate failed, so Auto-Repair rebuilt from the trusted raw snapshot.
+    repaired_df = repair.repaired_df
     _save_state(repaired_df, settings, prefix="repaired")
 
     # 6. Rebuild index cho REPAIRED va danh gia
@@ -132,13 +128,8 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
         test_set_path=settings.paths.eval_testset,
     )
 
-    # 7. Quality + Freshness tren REPAIRED (Dung so huu)
-    repaired_quality = run_data_quality_checks(repaired_df, settings, "repaired")
-    repaired_freshness = build_freshness_report(
-        repaired_df,
-        settings,
-        settings.paths.repaired_freshness_report,
-    )
+    repaired_quality = repair.quality
+    repaired_freshness = repair.freshness
 
     # 8. So sanh 3 trang thai (Dung so huu reporting)
     generate_corruption_report(
@@ -151,6 +142,13 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
         corrupted_freshness=corrupted_freshness,
         repaired_freshness=repaired_freshness,
     )
+    write_json(settings.paths.active_state, {
+        "state": "repaired",
+        "collection_name": settings.repaired_collection_name,
+        "quality_success": True,
+        "auto_repair_status": repair.event["status"],
+        "raw_sha256": repair.event["raw_sha256"],
+    })
 
     return {
         "baseline": baseline_metrics,
@@ -158,6 +156,7 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
         "repaired": repaired_eval,
         "corrupted_quality": corrupted_quality,
         "repaired_quality": repaired_quality,
+        "auto_repair": repair.event,
     }
 
 
@@ -180,13 +179,15 @@ def main() -> None:
     print(f"  quality success: {bundle['corrupted_quality'].get('success')}")
     print(f"  is_fresh: {bundle['corrupted_quality']['freshness'].get('is_fresh')}")
 
-    print("\nRepaired:")
-    for key in ("retrieval_hit_rate", "mean_token_f1", "judge_accuracy", "mean_judge_score"):
-        val = bundle["repaired"].summary.get(key)
-        if isinstance(val, float):
-            print(f"  {key}: {val:.4f}")
-    print(f"  quality success: {bundle['repaired_quality'].get('success')}")
-    print(f"  is_fresh: {bundle['repaired_quality']['freshness'].get('is_fresh')}")
+    print(f"\nAuto-Repair: {bundle['auto_repair']['status']}")
+    if bundle["repaired"] is not None:
+        print("\nRepaired:")
+        for key in ("retrieval_hit_rate", "mean_token_f1", "judge_accuracy", "mean_judge_score"):
+            val = bundle["repaired"].summary.get(key)
+            if isinstance(val, float):
+                print(f"  {key}: {val:.4f}")
+        print(f"  quality success: {bundle['repaired_quality'].get('success')}")
+        print(f"  is_fresh: {bundle['repaired_quality']['freshness'].get('is_fresh')}")
 
     print("\nArtifacts written:")
     print(f"  - data/clean/papers_clean_corrupted.csv/json")

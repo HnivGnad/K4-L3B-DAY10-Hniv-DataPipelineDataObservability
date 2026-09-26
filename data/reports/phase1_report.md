@@ -10,10 +10,10 @@
 | filter | from-pub-date:2026-03-30,has-abstract:true |
 | records | 24 |
 | clean_records | 24 |
-| raw_response_path | data\raw\crossref_response.json |
-| raw_records_path | data\raw\crossref_records.json |
+| raw_response_path | data/raw/crossref_response.json |
+| raw_records_path | data/raw/crossref_records.json |
 | collection_name | papers-baseline |
-| run_started_at | 2026-09-26T05:05:20.887793+00:00 |
+| run_started_at | 2026-09-26T05:54:14.344101+00:00 |
 
 ## Evaluation
 
@@ -37,6 +37,7 @@ Overall gate: **Yes**
 | ExpectColumnValuesToBeUnique | paper_id | Yes |
 | ExpectColumnValueLengthsToBeBetween | title | Yes |
 | ExpectColumnValueLengthsToBeBetween | summary | Yes |
+| ExpectColumnValuesToNotMatchRegex | summary | Yes |
 
 Failed checks: None
 

@@ -1,0 +1,20 @@
+{
+  "triggered": true,
+  "trigger_reasons": [
+    "ExpectTableRowCountToBeBetween:table",
+    "ExpectColumnValuesToBeUnique:paper_id",
+    "ExpectColumnValueLengthsToBeBetween:title",
+    "ExpectColumnValueLengthsToBeBetween:summary",
+    "ExpectColumnValuesToNotMatchRegex:summary",
+    "freshness_sla"
+  ],
+  "source": "data/raw/crossref_records.json",
+  "action": "rebuild_from_raw_snapshot",
+  "before_quality_success": false,
+  "status": "repaired",
+  "raw_sha256": "4833369bc6bef868d7310b5fb8c299f0fa7a9b652b438714fbfe4255e182043d",
+  "after_quality_success": true,
+  "before_rows": 22,
+  "after_rows": 24,
+  "repaired_collection": "papers-repaired"
+}

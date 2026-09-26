@@ -5,7 +5,9 @@ from pathlib import Path
 
 import streamlit as st
 
-from app.state import STATES, list_documents, semantic_search
+from app.state import STATES, active_state, list_documents, semantic_search
+from core.config import load_settings
+from core.utils import read_json
 
 
 PAGE_CONFIG = {
@@ -33,7 +35,7 @@ Tất cả số liệu trên màn hình đều được sinh bởi `run_phase1.p
         ("📚 Paper Explorer", "Browse 24 papers ở 3 trạng thái, semantic search."),
         ("📊 Quality Dashboard", "GX checks pass/fail + Freshness SLA."),
         ("🔀 State Compare", "Bảng Baseline/Corrupted/Repaired với delta."),
-        ("💬 Ask the Corpus", "Chat với Gemini qua retrieval — chọn state."),
+        ("💬 Ask the Corpus", "Chat với LLM đã cấu hình qua retrieval — chọn state."),
         ("🏛 Kiến trúc", "Sơ đồ luồng + files đã chạy."),
     ]
     for col, (title, desc) in zip(cols, descriptions):
@@ -44,9 +46,9 @@ Tất cả số liệu trên màn hình đều được sinh bởi `run_phase1.p
     st.divider()
     st.subheader("🛠 Stack")
     st.code(
-        "Pipeline: Python 3.11 · LangChain · ChromaDB · sentence-transformers\n"
+        "Pipeline: Python 3.11–3.13 · LangChain · ChromaDB · sentence-transformers\n"
         "Quality: Great Expectations 1.x · Freshness SLA\n"
-        "UI: Streamlit · Altair · Gemini 2.5-flash (langchain-google-genai)",
+        f"UI: Streamlit · Altair · LLM provider: {load_settings().llm_provider}",
         language="text",
     )
 
@@ -68,7 +70,7 @@ def _explorer_page() -> None:
             }
             for h in hits
         ]
-        st.dataframe(rows, use_container_width=True, hide_index=True)
+        st.dataframe(rows, width="stretch", hide_index=True)
         for hit in hits[:5]:
             with st.expander(f"📄 {hit['title'][:80]}  (score: {hit['score']:.4f})"):
                 st.markdown(f"**paper_id:** `{hit['paper_id']}`")
@@ -76,7 +78,7 @@ def _explorer_page() -> None:
                 st.code(hit["content"][:600] + ("…" if len(hit["content"]) > 600 else ""), language="text")
     else:
         rows = [{"paper_id": doc["paper_id"], "title": doc["title"]} for doc in docs]
-        st.dataframe(rows, use_container_width=True, hide_index=True)
+        st.dataframe(rows, width="stretch", hide_index=True)
         selected = st.selectbox(
             "Chọn paper để xem chi tiết",
             options=[doc["paper_id"] for doc in docs],
@@ -133,37 +135,23 @@ def _chat_page() -> None:
     from app import chat as chat_mod
 
     st.title("💬 Ask the Corpus")
-    st.caption("Câu hỏi được retrieve từ ChromaDB collection rồi Gemini trả lời trên top-K context.")
+    st.caption("Câu hỏi được retrieve từ corpus rồi LLM đã cấu hình trả lời trên top-K context.")
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
     with st.sidebar:
         st.markdown("### Cấu hình")
-        state = st.radio("State", STATES, key="chat_state", horizontal=True)
-        examples = [
-            # --- Câu hỏi chung (chạy được trên cả 3 state) ---
-            "Who authored 'Chatbot Hybrid Fatwa MUI Menggunakan Retrieval Augmented Generation dan Large Language Model'?",
-            "When was 'Agentic Retrieval-Augmented Generation for Verifiable Regulatory Compliance in Urban Cyber-Physical Systems' published?",
-            "What does the abstract of 'DOLPHIN: A Privacy-Preserving Digital Investigation Readiness Assessment Framework' say?",
-            "What categories are listed for 'Advances in Reinforcement Learning for Retrieval-Augmented Generation in Large Language Model'?",
-            # --- Nhóm 1: Sanity check — câu trả lời nên ổn định cả 3 state ---
-            "Summarize the main contribution of 'A Survey on Retrieval-Augmented Generation for Large Language Models'.",
-            "Which paper in the corpus discusses hallucination mitigation in RAG systems?",
-            # --- Nhóm 2: Stress-test các trường thường bị corruption (authors / date / category) ---
-            "List the authors and the exact publication date of 'MedGraphRAG: Graph-based Retrieval-Augmented Generation for Medical Question Answering'.",
-            "What is the publication date and primary category of 'Privacy-Preserving Retrieval-Augmented Generation for Personal Data' (if present)?",
-            # --- Nhóm 3: Khai thác sự khác biệt về mặt nội dung giữa corrupted vs repaired ---
-            "Find papers whose title contains the keyword 'retrieval-augmented' and list their categories.",
-            "How many papers in this corpus are categorized under 'cs.CL' (Computation and Language)?",
-            # --- Nhóm 4: Câu hỏi phụ thuộc state (repaired có, baseline có thể khác, corrupted hay thiếu/lệch) ---
-            "According to the corpus, who are the authors of the paper about 'Graph Neural Network' based retrieval?",
-            "Show any paper related to 'evaluation benchmark' for RAG — return title, authors, and publication date.",
-        ]
+        state = st.radio(
+            "State", STATES, key="chat_state", horizontal=True,
+            index=STATES.index(active_state()),
+        )
+        testset_path = load_settings().paths.eval_testset
+        examples = [item["question"] for item in read_json(testset_path)] if testset_path.exists() else []
         example = st.selectbox("Câu hỏi mẫu", ["(tự nhập)"] + examples)
         top_k = st.slider("top_k", min_value=1, max_value=8, value=4)
         st.divider()
-        if st.button("🗑 Reset lịch sử chat", use_container_width=True):
+        if st.button("🗑 Reset lịch sử chat", width="stretch"):
             st.session_state.messages = []
             st.rerun()
 
@@ -191,9 +179,8 @@ def _chat_page() -> None:
         st.markdown(question)
 
     with st.chat_message("assistant"):
-        with st.spinner(f"Đang retrieve + gọi Gemini trên state = `{state}` …"):
-            hits = chat_mod.retrieve(question, state, top_k=top_k)
-            _, stream = chat_mod.stream_answer(question, state)
+        with st.spinner(f"Đang retrieve + gọi LLM trên state = `{state}` …"):
+            hits, stream = chat_mod.stream_answer(question, state, top_k=top_k)
         with st.expander(f"📎 {len(hits)} nguồn đã retrieve (state={state})"):
             for idx, hit in enumerate(hits, start=1):
                 st.markdown(

@@ -30,3 +30,20 @@
 2. Tích hợp **Freshness Check** (`age_days`) vào Quality Gate
 3. Chạy **Baseline → Corruption → Repair** → xuất bảng đối chiếu 3 trạng thái
 4. **Live Demo** trên bảng & nộp link repo lên VLearn LMS
+
+## Chạy lại bằng môi trường hiện có
+
+Sau khi cài dependencies từ `uv.lock` hoặc `requirements.txt`, dùng môi trường Python của project để chạy. Các lệnh dưới đây sử dụng snapshot đã lưu, mô hình embedding đã cache và provider `mock`; không cần API key hay gọi lại Crossref.
+
+```bash
+HF_HUB_OFFLINE=1 LLM_PROVIDER=mock REFRESH_SOURCE=false REFRESH_TEST_SET=false RUN_RAGAS=false .venv/bin/python script/run_phase1.py
+HF_HUB_OFFLINE=1 LLM_PROVIDER=mock REFRESH_SOURCE=false REFRESH_TEST_SET=false RUN_RAGAS=false .venv/bin/python script/run_corruption_flow.py
+.venv/bin/python -m pytest -q
+HF_HUB_OFFLINE=1 LLM_PROVIDER=mock .venv/bin/python script/run_ui.py
+```
+
+Nếu máy chưa cache `all-MiniLM-L6-v2`, bỏ `HF_HUB_OFFLINE=1` ở lần chạy đầu để tải mô hình. `script/run_ui.py` dùng đúng Python của môi trường đang gọi script.
+
+Quality gate kiểm tra GX và freshness trước khi chọn collection phục vụ. Khi corrupted state fail, Auto-Repair dựng lại từ `data/raw/crossref_records.json`, kiểm tra hash/schema/ID và chạy lại gate. Xem [quy tắc corruption và repair](docs/CORRUPTION_GX_MAPPING.md), [sự kiện Auto-Repair](data/results/auto_repair_event.json) và [trạng thái đang phục vụ](data/results/active_state.json).
+
+Metrics offline dùng trả lời trích xuất theo kết quả semantic retrieval. Trường `judge_fallback_count` cho biết số câu được chấm bằng heuristic vì không có LLM judge; không nên diễn giải đó là điểm chấm của LLM.

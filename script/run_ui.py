@@ -8,6 +8,7 @@ or directly:
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -39,17 +40,19 @@ def main() -> None:
     _disable_noisy_watchers()
     project_dir = _bootstrap_paths()
     app_path = project_dir / "app" / "main.py"
-    cmd = (
-        f'streamlit run "{app_path}" '
-        "--server.port 8501 "
-        "--server.headless false "
-        "--browser.gatherUsageStats false "
-        "--server.fileWatcherType none"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        part for part in (str(project_dir), str(project_dir / "src"), env.get("PYTHONPATH", ""))
+        if part
     )
-    print(f"Launching Streamlit: {cmd}")
-    os.system(cmd)
+    command = [
+        sys.executable, "-m", "streamlit", "run", str(app_path),
+        "--server.port", "8501", "--server.headless", "false",
+        "--browser.gatherUsageStats", "false", "--server.fileWatcherType", "none",
+    ]
+    print(f"Launching Streamlit with {sys.executable}")
+    subprocess.run(command, cwd=project_dir, env=env, check=True)
 
 
 if __name__ == "__main__":
     main()
-

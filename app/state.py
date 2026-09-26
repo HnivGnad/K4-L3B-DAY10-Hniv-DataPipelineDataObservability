@@ -51,7 +51,7 @@ def _manifest_path(state: str) -> Path:
 
 
 @st.cache_resource(show_spinner="Đang tải 3 ChromaDB indexes…")
-def load_all_indexes() -> dict[str, Any]:
+def load_all_indexes(file_versions: tuple[int, int, int]) -> dict[str, Any]:
     """Load three index wrappers — one per pipeline state.
 
     Each value is the raw manifest dict (backend, model, collection, documents).
@@ -74,7 +74,19 @@ def load_all_indexes() -> dict[str, Any]:
 def get_manifest(state: str) -> dict[str, Any]:
     if state not in STATES:
         raise ValueError(f"Unknown state '{state}'. Expected one of {STATES}.")
-    return load_all_indexes()[state]
+    settings = load_settings()
+    paths = tuple(_embeddings_path(settings, name) for name in STATES)
+    return load_all_indexes(tuple(path.stat().st_mtime_ns for path in paths))[state]
+
+
+def active_state() -> str:
+    """Return the quality-approved state selected by the pipeline."""
+    path = load_settings().paths.active_state
+    if not path.exists():
+        return "baseline"
+    payload = read_json(path)
+    state = payload.get("state")
+    return state if payload.get("quality_success") and state in STATES else "baseline"
 
 
 def list_documents(state: str) -> list[dict[str, Any]]:
@@ -134,4 +146,3 @@ def lookup(state: str, value: str) -> dict[str, Any] | None:
         if doc["paper_id"].lower() == needle or doc["title"].lower() == needle:
             return doc
     return None
-

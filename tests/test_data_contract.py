@@ -8,6 +8,8 @@ import unittest
 from evaluation.testset import build_test_set
 from ingestion.cleaning import build_clean_dataframe
 from ingestion.crossref import PaperRecord
+from retrieval.index import SearchResult
+from retrieval.qa import answer_question
 
 
 RUN_DATE = datetime(2026, 9, 26, tzinfo=timezone.utc)
@@ -31,6 +33,26 @@ def make_record(number: int, **changes: object) -> PaperRecord:
 
 
 class DataContractTests(unittest.TestCase):
+    def test_evaluation_can_use_vector_results_without_exact_title_lookup(self) -> None:
+        class VectorOnlyIndex:
+            def search(self, query, top_k=None):
+                return [SearchResult(
+                    paper_id="10.1234/1", title="Known title", score=0.7,
+                    content="Summary: One sentence.",
+                    metadata={"summary": "One sentence.", "published": "2026-09-01",
+                              "authors_joined": "Ada Lovelace", "categories_joined": "Agentic AI"},
+                )]
+
+            def lookup(self, value):
+                raise AssertionError("Evaluation must not use exact title lookup")
+
+        result = answer_question(
+            "What does the abstract of 'Known title' say?",
+            settings=None, index=VectorOnlyIndex(), allow_exact_lookup=False,
+        )
+        self.assertEqual(result.retrieved_doc_ids, ["10.1234/1"])
+        self.assertEqual(result.answer, "One sentence.")
+
     def test_cleaning_normalizes_and_deduplicates(self) -> None:
         records = [make_record(1), make_record(2, paper_id="10.1234/1")]
         df = build_clean_dataframe(records, RUN_DATE)

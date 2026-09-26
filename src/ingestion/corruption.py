@@ -1,52 +1,36 @@
 from __future__ import annotations
 
+import math
 import random
 from datetime import datetime, timedelta
 
 import pandas as pd
 
 from core.utils import write_json
+from ingestion.cleaning import build_embedding_text
 
 
 # Fixed RNG for reproducibility (PHAN_CONG_NHOM.md: "Không bịa đặt số liệu").
 RNG = random.Random(42)
 
 
-def _rebuild_text_for_embedding(row: pd.Series) -> str:
-    """Rebuild `text_for_embedding` cho 1 row theo contract 5 phần (Item 4 PHAN_CONG_NHOM.md).
-
-    Contract tích hợp: Mọi thay đổi title/summary/metadata phải rebuild text_for_embedding.
-    """
-    parts = [
-        f"Title: {row.get('title', '')}",
-        f"Authors: {row.get('authors_joined', '')}",
-        f"Categories: {row.get('categories_joined', '')}",
-        f"Published: {row.get('published', '')}",
-        f"Summary: {row.get('summary', '')}",
-    ]
-    return "\n".join(parts)
-
-
-def _recompute_derived(df: pd.DataFrame) -> pd.DataFrame:
-    """Recompute tất cả cột dẫn xuất sau khi corrupt.
-
-    - `summary_chars`: độ dài summary (bị ảnh hưởng bởi blank/inject noise).
-    - `age_days`: KHÔNG recompute ở đây, sẽ do cleaning.py xử lý khi stale_date thay đổi published.
-      Tuy nhiên nếu `published` bị lùi về quá khứ, age_days tăng lên — orchestrator sẽ truyền
-      run_date vào hàm stale_date để set trực tiếp.
-    - `text_for_embedding`: rebuild theo 5 phần.
-    """
+def _recompute_derived(df: pd.DataFrame, run_date: datetime) -> pd.DataFrame:
+    """Recompute derived fields from the final corrupted source columns."""
     df = df.copy()
     df["summary_chars"] = df["summary"].fillna("").astype(str).str.len()
+    run_day = pd.Timestamp(run_date)
+    run_day = run_day.tz_localize("UTC") if run_day.tzinfo is None else run_day.tz_convert("UTC")
+    published = pd.to_datetime(df["published"], errors="coerce", utc=True)
+    df["age_days"] = (run_day.normalize() - published.dt.normalize()).dt.days
     if "text_for_embedding" in df.columns:
-        df["text_for_embedding"] = df.apply(_rebuild_text_for_embedding, axis=1)
+        df["text_for_embedding"] = df.apply(lambda row: build_embedding_text(row.to_dict()), axis=1)
     return df
 
 
 def _apply_drop_latest(df: pd.DataFrame, log: dict) -> pd.DataFrame:
     """Scenario 1: Drop 20% records mới nhất (sort theo `published` desc)."""
-    n_drop = max(1, int(len(df) * 0.2))
-    sorted_df = df.sort_values("published", ascending=False)
+    n_drop = min(len(df), max(1, math.ceil(len(df) * 0.2)))
+    sorted_df = df.sort_values(["published", "paper_id"], ascending=[False, True], kind="stable")
     drop_ids = sorted_df.head(n_drop)["paper_id"].tolist()
     corrupted = df[~df["paper_id"].isin(drop_ids)].copy()
     log["scenarios"].append(
@@ -74,7 +58,7 @@ def _apply_blank_summary(df: pd.DataFrame, log: dict) -> pd.DataFrame:
             "type": "blank_summary",
             "params": {"target_count": target_count},
             "affected_paper_ids": affected,
-            "expected_quality_signal": "null_summary_violation",
+            "expected_quality_signal": "summary_length_below_min",
         }
     )
     return corrupted
@@ -96,7 +80,7 @@ def _apply_inject_noise(df: pd.DataFrame, log: dict) -> pd.DataFrame:
             "type": "inject_noise",
             "params": {"token": noise, "target_count": target_count},
             "affected_paper_ids": affected,
-            "expected_quality_signal": "summary_length_above_max",
+            "expected_quality_signal": "noise_token_detected",
         }
     )
     return corrupted
@@ -144,8 +128,6 @@ def _apply_stale_date(df: pd.DataFrame, log: dict, run_date: datetime) -> pd.Dat
     corrupted = df.copy()
     mask = corrupted["paper_id"].isin(affected)
     corrupted.loc[mask, "published"] = new_published
-    # Recompute age_days NGAY tại đây để freshness check chạy đúng
-    corrupted.loc[mask, "age_days"] = days_back
 
     log["scenarios"].append(
         {
@@ -226,7 +208,7 @@ def corrupt_clean_dataframe(
     corrupted = _apply_duplicate_rows(corrupted, log)
 
     # Rebuild cột dẫn xuất sau khi corrupt
-    corrupted = _recompute_derived(corrupted)
+    corrupted = _recompute_derived(corrupted, run_date)
 
     log["corrupted_rows"] = len(corrupted)
     log["unique_paper_ids"] = bool(corrupted["paper_id"].is_unique)

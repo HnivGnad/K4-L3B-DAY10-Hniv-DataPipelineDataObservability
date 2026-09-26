@@ -38,7 +38,7 @@ METRIC_LABELS_VI: dict[str, str] = {
 
 
 @st.cache_data
-def load_metrics() -> dict[str, dict[str, Any]]:
+def load_metrics(file_versions: tuple[int, int, int]) -> dict[str, dict[str, Any]]:
     """Đọc 3 file metrics.json do pipeline ``run_phase1.py`` / ``run_corruption_flow.py`` sinh ra."""
     settings = load_settings()
     return {
@@ -113,7 +113,25 @@ def render() -> None:
         "Cùng một bộ test gồm **10 câu hỏi** — đo trên cả 3 ChromaDB collection "
         "(`papers-baseline`, `papers-corrupted`, `papers-repaired`)."
     )
-    data = load_metrics()
+    settings = load_settings()
+    metric_paths = (
+        settings.paths.baseline_metrics,
+        settings.paths.corrupted_metrics,
+        settings.paths.repaired_metrics,
+    )
+    data = load_metrics(tuple(path.stat().st_mtime_ns for path in metric_paths))
+    fallback_counts = {
+        state: int(data[state].get("judge_fallback_count", 0)) for state in STATES
+    }
+    if any(fallback_counts.values()):
+        st.info(
+            "Judge dùng heuristic fallback cho "
+            + ", ".join(
+                f"{state}: {count}/{data[state].get('samples', '?')}"
+                for state, count in fallback_counts.items()
+            )
+            + " câu. Các chỉ số judge hiện không phải kết quả chấm của LLM."
+        )
 
     # 1. Bảng so sánh ------------------------------------------------------------
     st.subheader("Bảng chỉ số theo 3 trạng thái")
@@ -130,7 +148,7 @@ def render() -> None:
             "Δ repaired − corrupted",
         ],
     )
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width="stretch", hide_index=True)
 
     st.divider()
 
@@ -169,7 +187,7 @@ def render() -> None:
         )
     )
     facet = line.facet(column=alt.Column("Metric:N", title=None))
-    st.altair_chart(facet, use_container_width=True)
+    st.altair_chart(facet, width="stretch")
 
     st.divider()
 

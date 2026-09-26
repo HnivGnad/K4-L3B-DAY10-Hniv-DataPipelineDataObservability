@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from hashlib import sha256
 
 import pandas as pd
 
@@ -109,6 +110,14 @@ def run_baseline(settings: Settings | None = None) -> EvaluationBundle:
         settings,
         settings.paths.freshness_report,
     )
+    if quality["success"]:
+        write_json(settings.paths.active_state, {
+            "state": "baseline",
+            "collection_name": settings.baseline_collection_name,
+            "quality_success": True,
+            "auto_repair_status": "not_needed",
+            "raw_sha256": sha256(settings.paths.raw_records_json.read_bytes()).hexdigest(),
+        })
     source_summary = {
         "source": settings.source_api,
         "source_mode": source_mode,

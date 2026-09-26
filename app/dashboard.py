@@ -35,7 +35,7 @@ def _quality_report_path(settings, name: str) -> Path:
 
 
 @st.cache_data
-def load_quality() -> dict[str, dict[str, Any]]:
+def load_quality(file_versions: tuple[int, int, int]) -> dict[str, dict[str, Any]]:
     """Đọc 3 file quality report (baseline/corrupted/repaired) từ disk."""
     settings = load_settings()
     base = read_json(_quality_report_path(settings, "baseline"))
@@ -45,17 +45,10 @@ def load_quality() -> dict[str, dict[str, Any]]:
 
 
 def _extract_freshness(payload: dict[str, Any]) -> dict[str, Any]:
-    """Trả về block freshness dù ở 1 trong 2 schema:
-
-    Schema A (baseline / repaired): ``payload["freshness"] = {...}``
-    Schema B (corrupted): các trường phẳng ở top-level (``stale_ratio``,
-    ``stale_rows``, …) — pipeline ghi đè từ ``build_freshness_report``.
-
-    Output luôn là dict với các key mặc định, gọi trực tiếp không cần ``.get()``.
-    """
+    """Read the current nested freshness block, with a legacy flat fallback."""
     fresh = payload.get("freshness")
     if fresh is None:
-        # Schema B: đọc flat keys từ top-level
+        # Legacy artifact: read flat keys from the top level.
         fresh = {
             "stale_ratio": payload.get("stale_ratio", 0.0),
             "stale_rows": payload.get("stale_rows", 0),
@@ -67,7 +60,7 @@ def _extract_freshness(payload: dict[str, Any]) -> dict[str, Any]:
             ),
         }
     else:
-        # Schema A: bổ sung key mặc định nếu thiếu
+        # Current artifact: fill optional keys if absent.
         fresh = {
             "stale_ratio": float(fresh.get("stale_ratio", 0.0)),
             "stale_rows": int(fresh.get("stale_rows", 0)),
@@ -160,7 +153,9 @@ def render() -> None:
         "Great Expectations 1.x (ephemeral context) kết hợp **freshness SLA 180 ngày** — "
         "so sánh đồng thời 3 trạng thái của pipeline."
     )
-    data = load_quality()
+    settings = load_settings()
+    quality_paths = tuple(_quality_report_path(settings, state) for state in STATES)
+    data = load_quality(tuple(path.stat().st_mtime_ns for path in quality_paths))
 
     # Trích freshness & quality gate dùng schema nào (handle defensive)
     enriched: dict[str, dict[str, Any]] = {}
@@ -177,7 +172,7 @@ def render() -> None:
         }
 
     # 1. 3 cột tóm tắt -----------------------------------------------------------
-    st.subheader("Tổ quan 3 trạng thái")
+    st.subheader("Tổng quan 3 trạng thái")
     cols = st.columns(3)
     for col, state in zip(cols, STATES):
         info = enriched[state]
@@ -224,14 +219,13 @@ def render() -> None:
     if enriched[detail_state_key]["checks"]:
         st.dataframe(
             _check_table(enriched[detail_state_key]["payload"]),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
     else:
         st.info(
-            "Trạng thái này không có GX checks (file JSON chỉ chứa freshness block) — "
-            "đây là thiết kế pipeline: state **Lỗi** được sinh từ "
-            "`build_freshness_report()` chứ không qua `run_data_quality_checks()`."
+            "Artifact quality của trạng thái này chưa có GX checks. "
+            "Hãy chạy lại pipeline và kiểm tra file JSON tương ứng."
         )
 
     st.divider()
@@ -288,7 +282,7 @@ def render() -> None:
         .mark_rule(color="orange", strokeDash=[4, 4])
         .encode(y="Ngưỡng:Q")
     )
-    st.altair_chart(bar + threshold_line, use_container_width=True)
+    st.altair_chart(bar + threshold_line, width="stretch")
 
     # 4. Biểu đồ số check pass ----------------------------------------------------
     st.subheader("Số GX checks pass ở 3 trạng thái")
@@ -323,7 +317,7 @@ def render() -> None:
             ],
         )
     )
-    st.altair_chart(bar2, use_container_width=True)
+    st.altair_chart(bar2, width="stretch")
 
     # 5. Insight tự động -----------------------------------------------------------
     st.subheader("Nhận xét tự động")
@@ -338,9 +332,26 @@ def render() -> None:
 
     st.markdown(
         f"""
-- Trạng thái **Sạch (Baseline)** đạt **{base_passed}/{len(base_info['checks'])}** checks, dữ liệu hoàn hảo.
-- Trạng thái **Lỗi (Corrupted)** chỉ có freshness block — pipeline không chạy GX ở state này (`build_freshness_report()` ghi đè `corrupted_quality_report.json`).
-- Trạng thái **Phục hồi (Repaired)** phục hồi **{rep_passed}/{len(rep_info['checks'])}** checks — cơ chế repair idempotent từ `data/raw/`.
-- **Freshness SLA** ở trạng thái **Lỗi**: `stale_rows = {corr_fresh['stale_rows']}`, `total_rows = {corr_fresh['total_rows']}`, `stale_ratio = {_format_pct(float(corr_fresh['stale_ratio']))}` — vẫn dưới ngưỡng SLA 25 % nên `is_fresh = true`.
+- **Baseline:** {base_passed}/{len(base_info['checks'])} GX checks pass; quality gate {_badge(base_info['gate_ok'])}.
+- **Corrupted:** {corr_passed}/{len(corr_info['checks'])} GX checks pass; quality gate {_badge(corr_info['gate_ok'])}.
+- **Repaired:** {rep_passed}/{len(rep_info['checks'])} GX checks pass; quality gate {_badge(rep_info['gate_ok'])}.
+- **Freshness của corrupted:** `stale_rows = {corr_fresh['stale_rows']}`, `total_rows = {corr_fresh['total_rows']}`, `stale_ratio = {_format_pct(float(corr_fresh['stale_ratio']))}`; `is_fresh = {str(corr_fresh['is_fresh']).lower()}`.
 """
     )
+
+    event_path = settings.paths.auto_repair_event
+    active_path = settings.paths.active_state
+    if event_path.exists() and active_path.exists():
+        event = read_json(event_path)
+        active = read_json(active_path)
+        st.divider()
+        st.subheader("Auto-Repair")
+        st.markdown(
+            f"**Quyết định:** `{event.get('status', 'unknown')}` · "
+            f"**Collection đang phục vụ:** `{active.get('collection_name', 'unknown')}`"
+        )
+        if event.get("triggered"):
+            st.caption("Quality gate đã kích hoạt rebuild từ raw snapshot sau các tín hiệu:")
+            st.write(event.get("trigger_reasons", []))
+        if event.get("status") == "failed":
+            st.error(event.get("error", "Auto-Repair thất bại"))
