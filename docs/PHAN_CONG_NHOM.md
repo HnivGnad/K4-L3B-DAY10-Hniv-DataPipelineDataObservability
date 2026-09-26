@@ -45,9 +45,41 @@ Các yêu cầu bắt buộc:
 
 Nguyên tắc ownership: owner trực tiếp viết và giải thích phần được giao; reviewer chạy lại, kiểm tra contract và ghi nhận lỗi. Vinh điều phối tích hợp nhưng không nhận thay ownership kỹ thuật của các thành viên khác.
 
-## 3. Công việc chi tiết từng thành viên
+## 3. Luồng hoạt động của từng thành viên
 
-### 3.1. Vinh — Nhóm trưởng, Pipeline Integration & Evidence Owner
+```text
+Giang (raw data)
+    → Đạt (clean data + test set)
+        → Vinh (baseline index + evaluation)
+            → Dũng (quality + freshness + baseline report)
+                → Thái (corruption + repair rules)
+                    → Vinh (corrupted/repaired evaluation + tích hợp)
+                        → Dũng (comparison report)
+                            → Cả nhóm (review, demo và nghiệm thu)
+```
+
+| Thành viên | Input nhận vào | Hoạt động chính | Output bàn giao | Bàn giao cho |
+| --- | --- | --- | --- | --- |
+| **Vinh** | Module và artifact do Giang, Đạt, Dũng, Thái cung cấp | Chốt data contract; tích hợp `phase1.py` và `corruption_flow.py`; build ba ChromaDB collections; chạy evaluation trên cùng test set; đối chiếu code, metrics và reports | Baseline/corrupted/repaired metrics, answers, pipeline chạy end-to-end và bằng chứng nghiệm thu | Dũng để hoàn thiện báo cáo; cả nhóm để review và demo |
+| **Giang** | Cấu hình nguồn Crossref và local snapshot | Gọi API với retry/fallback; parse payload; chuẩn hóa `PaperRecord`; lưu nguyên raw response và parsed records | `crossref_response.json`, `crossref_records.json` và raw schema gồm 24 records | Đạt để cleaning; Vinh để chạy pipeline |
+| **Đạt** | Raw records từ Giang | Làm sạch văn bản; parse ngày; tính `age_days`; deduplicate; tạo `text_for_embedding`; xây test set 10 câu thuộc bốn nhóm nghiệp vụ | Clean CSV/JSON, clean schema và `test_set.json` | Vinh để index/evaluate; Dũng để quality check; Thái để tạo corruption |
+| **Dũng** | Baseline/corrupted/repaired dataframe và metrics từ pipeline | Chạy bốn GX expectations; tính freshness SLA; lưu quality artifacts; sinh báo cáo baseline và bảng so sánh ba trạng thái | Quality/freshness JSON, `phase1_report.md`, `corruption_report.md` | Vinh để kiểm tra tính nhất quán; cả nhóm để trình bày kết quả |
+| **Thái** | Clean dataframe và data contract từ Đạt | Tạo sáu loại corruption; rebuild các cột dẫn xuất; ghi corruption log; xác minh repair được dựng lại từ raw records và có tính idempotent | Corrupted dataset, `corruption_log.json`, quy tắc và bằng chứng repair | Vinh để re-index/evaluate; Dũng để phân tích quality/freshness |
+
+### Trình tự phối hợp
+
+1. **Vinh** khởi tạo môi trường, chốt schema, đường dẫn artifact, cấu hình và tiêu chí nghiệm thu chung.
+2. **Giang** hoàn thành raw ingestion rồi bàn giao raw records đã kiểm tra cho **Đạt** và **Vinh**.
+3. **Đạt** tạo cleaned dataset và test set cố định; **Giang** review lại tính đúng của dữ liệu nguồn.
+4. **Vinh** build baseline index và chạy evaluation; **Dũng** đồng thời chạy quality/freshness và tạo báo cáo baseline.
+5. Khi baseline đã được xác nhận, **Thái** tạo corrupted dataset và corruption log; **Đạt** review schema và các cột dẫn xuất.
+6. **Vinh** index/evaluate corrupted state, sau đó phối hợp **Thái** dựng repaired state lại từ raw records và đánh giá lại bằng chính test set ban đầu.
+7. **Dũng** tổng hợp quality, freshness và metrics thành bảng Baseline–Corrupted–Repaired; **Vinh** kiểm tra báo cáo khớp artifact.
+8. Cả nhóm chạy lại hai entrypoint, review chéo, chuẩn bị phần trình bày theo module và hoàn tất báo cáo cá nhân trước khi nộp.
+
+## 4. Công việc chi tiết từng thành viên
+
+### 4.1. Vinh — Nhóm trưởng, Pipeline Integration & Evidence Owner
 
 #### Đầu việc chính
 
@@ -106,7 +138,7 @@ Nguyên tắc ownership: owner trực tiếp viết và giải thích phần đ�
 - Tất cả artifact đúng đường dẫn trong `Settings.paths`.
 - Report đọc số liệu từ artifact thực tế và khớp với các file metrics.
 
-### 3.2. Giang — Source & Data Lineage Owner
+### 4.2. Giang — Source & Data Lineage Owner
 
 #### Đầu việc chính
 
@@ -143,7 +175,7 @@ python -c "from core.config import load_settings; from ingestion.crossref import
 - Chạy được khi có mạng và vẫn chạy được từ snapshot khi nguồn sống không khả dụng.
 - Không ghi API key/token vào raw response, log hoặc source code.
 
-### 3.3. Đạt — Cleaning & Evaluation-set Owner
+### 4.3. Đạt — Cleaning & Evaluation-set Owner
 
 #### Đầu việc chính
 
@@ -182,7 +214,7 @@ python -c "from datetime import datetime, timezone; from core.config import load
 - Không có `paper_id`, `title` hoặc `text_for_embedding` rỗng.
 - Test set có đúng 10 câu và đủ bốn `question_type`.
 
-### 3.4. Dũng — Data Observability & Reporting Owner
+### 4.4. Dũng — Data Observability & Reporting Owner
 
 #### Đầu việc chính
 
@@ -227,7 +259,7 @@ python -c "from core.config import load_settings; from observability.quality imp
 - Great Expectations không dùng API cũ/deprecated gây crash.
 - Các con số trong Markdown khớp tuyệt đối với JSON artifacts.
 
-### 3.5. Thái — Corruption & Repair Owner
+### 4.5. Thái — Corruption & Repair Owner
 
 #### Đầu việc chính
 
@@ -267,7 +299,7 @@ python -c "from core.config import load_settings; from observability.quality imp
 - Quality gate phát hiện lỗi dữ liệu tương ứng.
 - Repair chạy lặp lại không tích lũy duplicate/noise và phục hồi được các contract chính.
 
-## 4. Contract tích hợp bắt buộc
+## 5. Contract tích hợp bắt buộc
 
 | Contract | Quy ước nhóm phải giữ |
 |---|---|
@@ -282,7 +314,7 @@ python -c "from core.config import load_settings; from observability.quality imp
 | Repair source | Dựng lại từ raw snapshot đáng tin cậy qua cleaning, không phục hồi từ dữ liệu đã corrupted |
 | Evidence | Mọi kết luận phải trỏ được tới code, log, JSON metric hoặc Markdown report sinh từ pipeline |
 
-## 5. Kế hoạch phối hợp theo checkpoint 240 phút
+## 6. Kế hoạch phối hợp theo checkpoint 240 phút
 
 | Thời gian | Checkpoint | Người thực hiện chính | Công việc song song | Điểm đồng bộ/bàn giao |
 |---|---|---|---|---|
@@ -302,7 +334,7 @@ python -c "from core.config import load_settings; from observability.quality imp
 - Không sửa contract chung âm thầm; thay đổi schema/path phải báo cho tất cả module phụ thuộc.
 - Không merge phần việc nếu chưa có lệnh hoặc artifact xác minh tối thiểu.
 
-## 6. Ma trận kiểm tra chéo
+## 7. Ma trận kiểm tra chéo
 
 | Hạng mục | Owner | Reviewer | Cách kiểm tra |
 |---|---|---|---|
@@ -315,7 +347,7 @@ python -c "from core.config import load_settings; from observability.quality imp
 | Repair pipeline | Vinh + Thái | Giang | Rebuild từ raw, chạy lặp ổn định, không sửa vá corrupted data |
 | Submission/evidence | Vinh | Cả nhóm | Không secret; đủ report; 100% thành viên có commit và nộp LMS |
 
-## 7. Lệnh nghiệm thu chung
+## 8. Lệnh nghiệm thu chung
 
 ```bash
 python -c "import chromadb, great_expectations, sentence_transformers; print('Môi trường sẵn sàng')"
@@ -342,7 +374,7 @@ data/reports/phase1_report.md
 data/reports/corruption_report.md
 ```
 
-## 8. Phân công live demo và Q&A
+## 9. Phân công live demo và Q&A
 
 | Phần trình bày | Người phụ trách | Nội dung phải giải thích được |
 |---|---|---|
@@ -361,7 +393,7 @@ Tất cả thành viên phải trả lời được năm câu hỏi chung:
 4. Vì sao phải dùng cùng test set cho baseline, corrupted và repaired?
 5. Dựa vào artifact/metric nào để kết luận repair thành công?
 
-## 9. Checklist trước khi nộp
+## 10. Checklist trước khi nộp
 
 - [ ] `python script/run_phase1.py` exit code 0.
 - [ ] `python script/run_corruption_flow.py` exit code 0.
@@ -380,7 +412,7 @@ Tất cả thành viên phải trả lời được năm câu hỏi chung:
 - [ ] Vinh, Giang, Đạt, Dũng và Thái đều có commit trên nhánh `main`.
 - [ ] Mỗi thành viên tự nộp link repo lên VLearn trước hạn.
 
-## 10. Thông tin còn thiếu cần bổ sung
+## 11. Thông tin còn thiếu cần bổ sung
 
 Để hoàn thiện hồ sơ nhóm và `docs/TEAM.md`, cần bổ sung:
 
@@ -391,7 +423,7 @@ Tất cả thành viên phải trả lời được năm câu hỏi chung:
 - Nội dung codelab trên VLearn nếu có yêu cầu bổ sung ngoài các file trong repository.
 - Nhóm có chọn hạng mục bonus nào hay chỉ hoàn thành 100 điểm bắt buộc.
 
-## 11. Gợi ý phạm vi bonus sau khi hoàn thành phần bắt buộc
+## 12. Gợi ý phạm vi bonus sau khi hoàn thành phần bắt buộc
 
 Chỉ triển khai bonus sau khi hai pipeline chính chạy ổn định và phần bắt buộc dự kiến đạt ít nhất 85 điểm:
 
