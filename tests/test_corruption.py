@@ -108,9 +108,10 @@ def test_truncate_title(clean_df, log_path, run_date):
 
 
 def test_stale_date(clean_df, log_path, run_date):
-    """Scenario 5: Co it nhat 1 row co age_days > 180 (freshness SLA break)."""
+    """Scenario 5: Ty le stale phai vuot nguong 25% cua freshness SLA."""
     out = corrupt_clean_dataframe(clean_df, log_path, run_date=run_date)
-    assert (out["age_days"] > 180).sum() >= 1
+    stale_ratio = (out["age_days"] > 180).sum() / len(out)
+    assert stale_ratio > 0.25
     stale_scenario = next(s for s in _read_log(log_path)["scenarios"] if s["type"] == "stale_date")
     assert stale_scenario["expected_quality_signal"] == "freshness_sla_violation"
 

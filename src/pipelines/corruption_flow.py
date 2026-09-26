@@ -115,7 +115,7 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
     corrupted_freshness = build_freshness_report(
         corrupted_df,
         settings,
-        settings.paths.corrupted_quality_report,  # dung chung path voi quality report
+        settings.paths.corrupted_freshness_report,
     )
 
     # 5. Repair IDEMPOTENT tu raw snapshot (Thai so huu quy tac repair)
@@ -137,7 +137,7 @@ def run_corruption_flow(settings: Settings | None = None) -> dict[str, Evaluatio
     repaired_freshness = build_freshness_report(
         repaired_df,
         settings,
-        settings.paths.freshness_report,  # share freshness artifact
+        settings.paths.repaired_freshness_report,
     )
 
     # 8. So sanh 3 trang thai (Dung so huu reporting)
@@ -194,4 +194,6 @@ def main() -> None:
     print(f"  - data/results/corruption_log.json")
     print(f"  - data/results/corrupted_metrics.json")
     print(f"  - data/results/repaired_metrics.json")
+    print(f"  - data/quality/corrupted_freshness_report.json")
+    print(f"  - data/quality/repaired_freshness_report.json")
     print(f"  - data/reports/corruption_report.md")
