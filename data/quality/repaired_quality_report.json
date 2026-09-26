@@ -1,0 +1,116 @@
+{
+  "report_name": "repaired",
+  "success": true,
+  "checks": [
+    {
+      "expectation": "ExpectTableRowCountToBeBetween",
+      "column": null,
+      "success": true,
+      "result": {
+        "observed_value": 24
+      }
+    },
+    {
+      "expectation": "ExpectColumnValuesToNotBeNull",
+      "column": "paper_id",
+      "success": true,
+      "result": {
+        "element_count": 24,
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "partial_unexpected_list": [],
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": []
+      }
+    },
+    {
+      "expectation": "ExpectColumnValuesToNotBeNull",
+      "column": "title",
+      "success": true,
+      "result": {
+        "element_count": 24,
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "partial_unexpected_list": [],
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": []
+      }
+    },
+    {
+      "expectation": "ExpectColumnValuesToNotBeNull",
+      "column": "summary",
+      "success": true,
+      "result": {
+        "element_count": 24,
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "partial_unexpected_list": [],
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": []
+      }
+    },
+    {
+      "expectation": "ExpectColumnValuesToBeUnique",
+      "column": "paper_id",
+      "success": true,
+      "result": {
+        "element_count": 24,
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "partial_unexpected_list": [],
+        "missing_count": 0,
+        "missing_percent": 0.0,
+        "unexpected_percent_total": 0.0,
+        "unexpected_percent_nonmissing": 0.0,
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": []
+      }
+    },
+    {
+      "expectation": "ExpectColumnValueLengthsToBeBetween",
+      "column": "title",
+      "success": true,
+      "result": {
+        "element_count": 24,
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "partial_unexpected_list": [],
+        "missing_count": 0,
+        "missing_percent": 0.0,
+        "unexpected_percent_total": 0.0,
+        "unexpected_percent_nonmissing": 0.0,
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": []
+      }
+    },
+    {
+      "expectation": "ExpectColumnValueLengthsToBeBetween",
+      "column": "summary",
+      "success": true,
+      "result": {
+        "element_count": 24,
+        "unexpected_count": 0,
+        "unexpected_percent": 0.0,
+        "partial_unexpected_list": [],
+        "missing_count": 0,
+        "missing_percent": 0.0,
+        "unexpected_percent_total": 0.0,
+        "unexpected_percent_nonmissing": 0.0,
+        "partial_unexpected_counts": [],
+        "partial_unexpected_index_list": []
+      }
+    }
+  ],
+  "freshness": {
+    "latest_published": "2026-09-15",
+    "oldest_published": "2026-04-01",
+    "stale_rows": 0,
+    "total_rows": 24,
+    "stale_ratio": 0.0,
+    "freshness_threshold_days": 180,
+    "stale_ratio_threshold": 0.25,
+    "invalid_age_rows": 0,
+    "invalid_date_rows": 0,
+    "is_fresh": true
+  }
+}

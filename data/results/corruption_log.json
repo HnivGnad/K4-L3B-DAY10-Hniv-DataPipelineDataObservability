@@ -1,0 +1,88 @@
+{
+  "scenarios": [
+    {
+      "type": "drop_latest_records",
+      "params": {
+        "drop_ratio": 0.2,
+        "sort_key": "published",
+        "n_drop": 4
+      },
+      "affected_paper_ids": [
+        "10.21203/rs.3.rs-10489777/v1",
+        "10.70267/aitia.2026482489",
+        "10.21203/rs.3.rs-10349437/v1",
+        "10.54254/2755-2721/2026.36624"
+      ],
+      "before_count": 24,
+      "after_count": 20,
+      "expected_quality_signal": "row_count_below_min"
+    },
+    {
+      "type": "blank_summary",
+      "params": {
+        "target_count": 3
+      },
+      "affected_paper_ids": [
+        "10.20944/preprints202608.1849.v1",
+        "10.1007/s10278-026-02086-9",
+        "10.21203/rs.3.rs-10423755/v1"
+      ],
+      "expected_quality_signal": "null_summary_violation"
+    },
+    {
+      "type": "inject_noise",
+      "params": {
+        "token": " ###CORRUPT### ",
+        "target_count": 3
+      },
+      "affected_paper_ids": [
+        "10.21203/rs.3.rs-10178277/v1",
+        "10.63646/kpqm1958",
+        "10.21079/11681/50309"
+      ],
+      "expected_quality_signal": "summary_length_above_max"
+    },
+    {
+      "type": "truncate_title",
+      "params": {
+        "max_chars": 7,
+        "target_count": 2
+      },
+      "affected_paper_ids": [
+        "10.20944/preprints202608.1849.v1",
+        "10.55041/isjem07213"
+      ],
+      "expected_quality_signal": "title_length_below_min"
+    },
+    {
+      "type": "stale_date",
+      "params": {
+        "days_back": 400,
+        "target_count": 3,
+        "new_published": "2025-08-22"
+      },
+      "affected_paper_ids": [
+        "10.20944/preprints202604.0339.v1",
+        "10.63125/gseh0k17",
+        "10.36887/2415-8453-2026-3-2"
+      ],
+      "expected_quality_signal": "freshness_sla_violation"
+    },
+    {
+      "type": "duplicate_rows",
+      "params": {
+        "n_duplicates": 3
+      },
+      "affected_paper_ids": [
+        "10.1093/sleep/zsag091.0346",
+        "10.1007/s10278-026-02086-9",
+        "10.20944/preprints202604.0339.v1"
+      ],
+      "expected_quality_signal": "paper_id_unique_violation"
+    }
+  ],
+  "seed": 42,
+  "baseline_rows": 24,
+  "corrupted_rows": 23,
+  "unique_paper_ids": false
+}
